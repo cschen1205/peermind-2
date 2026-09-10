@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useState } from 'react'
 import { Link } from 'react-router-dom'
 import { Lock } from 'lucide-react'
 import { ComparisonInspector } from '@/components/comparison/ComparisonInspector'
@@ -25,25 +25,19 @@ export function ComparePage() {
   const lockedRun = useDemoStore((s) => s.lockedRun)
   const comparisonInputs = useDemoStore((s) => s.comparisonInputs)
   const comparisonResult = useDemoStore((s) => s.comparisonResult)
-  const comparisonUsedPrepared = useDemoStore((s) => s.comparisonUsedPrepared)
   const selectedThemeId = useDemoStore((s) => s.selectedComparisonThemeId)
   const setSelectedThemeId = useDemoStore((s) => s.setSelectedComparisonThemeId)
   const updateHumanReview = useDemoStore((s) => s.updateHumanReview)
   const addHumanReviewer = useDemoStore((s) => s.addHumanReviewer)
   const removeHumanReviewer = useDemoStore((s) => s.removeHumanReviewer)
   const runCompare = useDemoStore((s) => s.runCompare)
-  const loadPreparedComparison = useDemoStore((s) => s.loadPreparedComparison)
   const importReviewParse = useDemoStore((s) => s.importReviewParse)
   const [filter, setFilter] = useState<AlignmentFilter>('all')
   const [statusFilter, setStatusFilter] = useState<StatusFilter>('all')
   const [questionFilter, setQuestionFilter] = useState<AlignmentFilter>('all')
   const [questionStatusFilter, setQuestionStatusFilter] = useState<StatusFilter>('all')
   const [editing, setEditing] = useState(false)
-
-  useEffect(() => {
-    if (!pkg || !lockedRun || comparisonResult) return
-    void loadPreparedComparison()
-  }, [pkg, lockedRun, comparisonResult, loadPreparedComparison])
+  const [hasCompared, setHasCompared] = useState(false)
 
   if (!pkg) return null
 
@@ -67,7 +61,7 @@ export function ComparePage() {
     )
   }
 
-  const showInputs = !comparisonResult || editing
+  const showInputs = !hasCompared || editing
   const questionRows = comparisonResult?.questions ?? []
   const allRows = comparisonResult ? [...comparisonResult.themes, ...questionRows] : []
   const selectedTheme = allRows.find((theme) => theme.id === selectedThemeId)
@@ -123,9 +117,8 @@ export function ComparePage() {
           <Card className="gap-4 rounded-[11px] p-6 shadow-none ring-0">
             <p className="eyebrow">Comparison inputs</p>
             <p className="text-[14px] text-pm-muted">
-              The demo comparison is loaded from
-              demo-data/model-soups-v1.comparison.json. Upload different reviews only if you want
-              to recompute live.
+              Upload each review file and name the reviewer. Click Compare Reviews to score
+              weaknesses and questions against the locked PeerMind run.
             </p>
             <ReviewInput
               inputs={comparisonInputs}
@@ -141,20 +134,13 @@ export function ComparePage() {
                 })
               }}
             />
-            <div className="mt-2 flex flex-wrap gap-2">
-              <Button
-                variant="secondary"
-                onClick={() => {
-                  void loadPreparedComparison().then((ok) => {
-                    if (ok) setEditing(false)
-                  })
-                }}
-              >
-                Load stored comparison
-              </Button>
+            <div className="mt-2">
               <Button
                 onClick={() => {
-                  if (runCompare()) setEditing(false)
+                  if (runCompare()) {
+                    setHasCompared(true)
+                    setEditing(false)
+                  }
                 }}
               >
                 Compare Reviews →
@@ -177,18 +163,10 @@ export function ComparePage() {
             />
           ) : null}
 
-          {comparisonUsedPrepared ? (
-            <p className="mt-4 text-[13px] text-pm-muted">
-              Weaknesses and questions are loaded from
-              demo-data/model-soups-v1.comparison.json. Only weaknesses count in the scored
-              comparison. Upload different reviews and click Compare Reviews to recompute live.
-            </p>
-          ) : (
-            <p className="mt-4 text-[13px] text-pm-muted">
-              Weaknesses are the scored comparison. Questions are listed separately and do not
-              count as missing PeerMind findings unless they restate a locked claim.
-            </p>
-          )}
+          <p className="mt-4 text-[13px] text-pm-muted">
+            Weaknesses are the scored comparison. Questions are listed separately and do not
+            count as missing PeerMind findings unless they restate a locked claim.
+          </p>
 
           <div className="mt-3">
             <Button variant="secondary" size="sm" onClick={() => setEditing(true)}>

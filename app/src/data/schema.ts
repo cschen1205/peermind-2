@@ -338,6 +338,9 @@ export const comparisonPresetSchema = z.object({
               missedCount: z.number().int().nonnegative(),
               incorrectCount: z.number().int().nonnegative(),
               tooBroadCount: z.number().int().nonnegative(),
+              addedCount: z.number().int().nonnegative().optional(),
+              verifiedCount: z.number().int().nonnegative().optional(),
+              refutedCount: z.number().int().nonnegative().optional(),
               note: z.string().min(1),
             }),
           )

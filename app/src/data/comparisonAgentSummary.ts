@@ -94,11 +94,13 @@ export function buildComparisonAgentSummary(
       id: 'peermind',
       label: 'PeerMind',
       raisedCount: locked.length,
-      missedCount: openreviewOnly.filter((theme) => theme.verificationStatus === 'verified_high_impact')
-        .length,
+      missedCount: 0,
       incorrectCount: 0,
       tooBroadCount: 0,
-      note: `Verified ${result.summary.sharedCount} shared weaknesses, refuted ${result.summary.refutedCount ?? 0}, and added ${result.summary.peerMindOnlyCount} checks the other reviews missed as weaknesses.`,
+      addedCount: result.summary.peerMindOnlyCount,
+      verifiedCount: result.summary.sharedCount,
+      refutedCount: result.summary.refutedCount ?? 0,
+      note: `Verified ${result.summary.sharedCount} overlapping weaknesses, refuted ${result.summary.refutedCount ?? 0}, and added ${result.summary.peerMindOnlyCount} checks the other reviews did not raise as weaknesses. OpenReview leftovers that were never locked stay in the reviewer-only table.`,
     },
   ]
 

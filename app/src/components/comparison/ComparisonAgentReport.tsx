@@ -53,22 +53,45 @@ export function ComparisonAgentReport({
                 {party.label}
               </p>
               <div className="mt-3 grid grid-cols-2 gap-3">
-                <div>
-                  <p className="type-stat text-pm-ink">{party.raisedCount}</p>
-                  <p className="mt-1 text-[12px] font-bold text-pm-muted uppercase">Raised</p>
-                </div>
-                <div>
-                  <p className="type-stat text-pm-ink">{party.missedCount}</p>
-                  <p className="mt-1 text-[12px] font-bold text-pm-muted uppercase">Missed</p>
-                </div>
-                <div>
-                  <p className="type-stat text-pm-status-disputed">{party.incorrectCount}</p>
-                  <p className="mt-1 text-[12px] font-bold text-pm-muted uppercase">Incorrect</p>
-                </div>
-                <div>
-                  <p className="type-stat text-pm-status-supported">{party.tooBroadCount}</p>
-                  <p className="mt-1 text-[12px] font-bold text-pm-muted uppercase">Too broad</p>
-                </div>
+                {party.id === 'peermind' ? (
+                  <>
+                    <div>
+                      <p className="type-stat text-pm-ink">{party.raisedCount}</p>
+                      <p className="mt-1 text-[12px] font-bold text-pm-muted uppercase">Locked</p>
+                    </div>
+                    <div>
+                      <p className="type-stat text-pm-accent">{party.addedCount ?? 0}</p>
+                      <p className="mt-1 text-[12px] font-bold text-pm-muted uppercase">Added</p>
+                    </div>
+                    <div>
+                      <p className="type-stat text-pm-status-verified">{party.verifiedCount ?? 0}</p>
+                      <p className="mt-1 text-[12px] font-bold text-pm-muted uppercase">Verified</p>
+                    </div>
+                    <div>
+                      <p className="type-stat text-pm-status-disputed">{party.refutedCount ?? 0}</p>
+                      <p className="mt-1 text-[12px] font-bold text-pm-muted uppercase">Refuted</p>
+                    </div>
+                  </>
+                ) : (
+                  <>
+                    <div>
+                      <p className="type-stat text-pm-ink">{party.raisedCount}</p>
+                      <p className="mt-1 text-[12px] font-bold text-pm-muted uppercase">Raised</p>
+                    </div>
+                    <div>
+                      <p className="type-stat text-pm-ink">{party.missedCount}</p>
+                      <p className="mt-1 text-[12px] font-bold text-pm-muted uppercase">Missed</p>
+                    </div>
+                    <div>
+                      <p className="type-stat text-pm-status-disputed">{party.incorrectCount}</p>
+                      <p className="mt-1 text-[12px] font-bold text-pm-muted uppercase">Incorrect</p>
+                    </div>
+                    <div>
+                      <p className="type-stat text-pm-status-supported">{party.tooBroadCount}</p>
+                      <p className="mt-1 text-[12px] font-bold text-pm-muted uppercase">Too broad</p>
+                    </div>
+                  </>
+                )}
               </div>
               <p className="mt-3 text-[13px] leading-relaxed text-pm-ink">{party.note}</p>
             </div>

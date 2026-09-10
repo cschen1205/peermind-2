@@ -77,6 +77,9 @@ export interface ComparisonPartyScore {
   missedCount: number
   incorrectCount: number
   tooBroadCount: number
+  addedCount?: number
+  verifiedCount?: number
+  refutedCount?: number
   note: string
 }
 
