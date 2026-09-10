@@ -6,7 +6,7 @@ MonoSoup decomposes each layer-wise fine-tuning update \(\Delta W = W_1-W_0\) us
 
 $$ W_{\text{MonoSoup}}^{(\ell)} =\lambda_{\text{High}}^{(\ell)}W_{\text{High}}^{(\ell)} +\lambda_{\text{Low}}^{(\ell)}W_{\text{Low}}^{(\ell)}. $$
 
-The method is evaluated primarily on CLIP ViT models fine-tuned on ImageNet and evaluated on five natural distribution shifts, with additional experiments on Qwen3-0.6B and ConvNeXt. The reported results suggest improved OOD performance over the original fine-tuned checkpoint while generally preserving ID accuracy, with competitive results relative to Model Soups, ModelStock, Wise-FT, and LiNeS.
+The method is evaluated primarily on CLIP ViT models fine-tuned on ImageNet and evaluated on five natural distribution shifts, with additional experiments on Qwen3-0.6B. The reported results suggest improved OOD performance over the original fine-tuned checkpoint while generally preserving ID accuracy, with competitive results relative to Model Soups, ModelStock, Wise-FT, and LiNeS.
 
 I find the central problem relevant and the single-checkpoint setting practically interesting. However, I have substantial concerns about the conceptual justification of the proposed coefficients, some incorrect or misleading interpretations of the quantities used in the method, and the strength of the experimental evidence relative to the claims.
 
@@ -14,7 +14,7 @@ Strengths
 Practically relevant problem. Requiring dozens of fine-tuned checkpoints, as in Model Soups, is often unrealistic. A post-hoc method operating from the pretrained model and one fine-tuned checkpoint is useful in practice. The paper motivates this setting clearly in the introduction.
 Simple and easy-to-apply method. MonoSoup is conceptually straightforward and does not require additional training data. The SVD-based decomposition is interpretable, and the distinction between dominant and residual update directions provides an intuitive lens for studying fine-tuning.
 Interesting observation regarding low-energy components. Figure 3 provides a useful empirical observation: while low-rank approximations appear sufficient on the standard multi-task arithmetic benchmark, aggressive truncation behaves differently for ImageNet fine-tuning under natural distribution shifts. In particular, even preserving approximately 95% of spectral energy can hurt both ID and OOD accuracy. This is arguably one of the more interesting observations in the paper.
-Reasonably broad vision evaluation. The paper includes multiple CLIP checkpoints, five OOD datasets, zero-shot and linear-probe initializations, additional ConvNeXt experiments, and an all-70-checkpoint visualization. This is considerably stronger than showing results for only one or two hand-selected checkpoints.
+Reasonably broad vision evaluation. The paper includes multiple CLIP checkpoints, five OOD datasets, zero-shot and linear-probe initializations, and an all-70-checkpoint visualization. This is considerably stronger than showing results for only one or two hand-selected checkpoints.
 Complementarity with Wise-FT is useful. Figure 4 suggests that using MonoSoup as the endpoint of Wise-FT interpolation can improve the resulting Pareto frontier. This is practically interesting because MonoSoup need not replace existing interpolation-based methods.
 Main weaknesses
 1. The quantity called cos α does not appear to measure alignment
@@ -210,6 +210,10 @@ worst degradation;
 confidence intervals.
 
 Figure 12 visually suggests that some checkpoints lose ID accuracy after MonoSoup. Quantifying this is necessary to support the “consistently” language used throughout the paper.
+
+9. The current manuscript contains no non-Transformer experiments
+
+The evaluation is Transformer-only: CLIP ViTs and a small Qwen model. I do not find ConvNeXt, ResNet, or any other non-Transformer result in the supplied manuscript, including the appendix. This is a categorical gap. The paper should not claim architectural generality until such an experiment exists.
 
 Additional questions / requested experiments
 

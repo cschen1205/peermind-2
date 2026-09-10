@@ -1,4 +1,4 @@
-import type { DemoStage } from '@/store/demoStore'
+import type { DemoStage, VerifyPanel } from '@/store/demoStore'
 import type { AskContextScope } from '@/types/ask'
 
 export const ASK_SCOPE_LABELS: Record<AskContextScope, string> = {
@@ -7,10 +7,12 @@ export const ASK_SCOPE_LABELS: Record<AskContextScope, string> = {
   source: 'Selected evidence',
   paper_graph_node: 'Paper graph node',
   finding: 'Selected critique',
+  verification: 'Verification',
   evidence_ledger: 'Evidence ledger',
+  impact: 'Impact',
   counterfactual_test: 'Counterfactual test',
-  report: 'Report finding',
-  comparison: 'Comparison theme',
+  synthesis: 'Synthesize finding',
+  comparison: 'Comparison finding',
 }
 
 export function deriveAskContext(input: {
@@ -19,6 +21,7 @@ export function deriveAskContext(input: {
   selectedSourceIds: string[]
   selectedFindingId?: string
   selectedComparisonThemeId?: string
+  verifyPanel?: VerifyPanel
 }): { scope: AskContextScope; contextIds: string[] } {
   const {
     stage,
@@ -26,6 +29,7 @@ export function deriveAskContext(input: {
     selectedSourceIds,
     selectedFindingId,
     selectedComparisonThemeId,
+    verifyPanel,
   } = input
 
   if (stage === 'compare') {
@@ -34,13 +38,13 @@ export function deriveAskContext(input: {
       contextIds: selectedComparisonThemeId ? [selectedComparisonThemeId] : [],
     }
   }
-  if (stage === 'test') {
+  if (stage === 'verify' && selectedFindingId) {
     return {
-      scope: 'counterfactual_test',
-      contextIds: selectedFindingId ? [selectedFindingId] : [],
+      scope: verifyPanel === 'impact' ? 'impact' : 'verification',
+      contextIds: [selectedFindingId],
     }
   }
-  if (stage === 'understand') {
+  if (stage === 'understand' || stage === 'plan') {
     if (selectedPaperNodeId) {
       return { scope: 'paper_graph_node', contextIds: [selectedPaperNodeId] }
     }
@@ -49,11 +53,11 @@ export function deriveAskContext(input: {
     }
     return { scope: 'whole_paper', contextIds: [] }
   }
-  if (
-    (stage === 'review' || stage === 'challenge' || stage === 'report') &&
-    selectedFindingId
-  ) {
-    return { scope: 'finding', contextIds: [selectedFindingId] }
+  if ((stage === 'review' || stage === 'synthesize') && selectedFindingId) {
+    return {
+      scope: stage === 'synthesize' ? 'synthesis' : 'finding',
+      contextIds: [selectedFindingId],
+    }
   }
   return { scope: 'whole_paper', contextIds: [] }
 }

@@ -1,10 +1,10 @@
-import type { FindingValidity } from '@/types/finding'
+import type { EvidenceVerdict } from '@/types/finding'
 import type {
   PlaybackEvent,
   ReplanEvent,
   WorkflowEdgeData,
   WorkflowNodeData,
-} from '@/types/investigation'
+} from '@/types/verification'
 
 export type NodePlayState =
   | 'idle'
@@ -20,7 +20,9 @@ export interface PlaybackView {
   revealedSourceIds: string[]
   visibleEvidenceIds: string[]
   activeReplan?: ReplanEvent
-  currentVerdict?: FindingValidity
+  currentVerdict?: EvidenceVerdict
+  impactAssessmentId?: string
+  calibratedFindingId?: string
   stopReason?: string
   spawnedAgentIds: string[]
   complete: boolean
@@ -30,7 +32,7 @@ export function reducePlayback(
   events: PlaybackEvent[],
   eventIndex: number,
   nodes: Pick<WorkflowNodeData, 'id' | 'kind'>[],
-  initialVerdict: FindingValidity,
+  initialVerdict: EvidenceVerdict,
 ): PlaybackView {
   const applied = events.slice(0, Math.max(0, eventIndex))
   const nodeStates: Record<string, NodePlayState> = {}
@@ -45,7 +47,9 @@ export function reducePlayback(
   const spawnedAgentIds: string[] = []
   let currentMessage: string | undefined
   let activeReplan: ReplanEvent | undefined
-  let currentVerdict: FindingValidity | undefined = initialVerdict
+  let currentVerdict: EvidenceVerdict | undefined = initialVerdict
+  let impactAssessmentId: string | undefined
+  let calibratedFindingId: string | undefined
   let stopReason: string | undefined
 
   function markCounterfactual(nodeId: string, next: NodePlayState) {
@@ -67,6 +71,9 @@ export function reducePlayback(
       case 'complete_node':
         markCounterfactual(event.nodeId, 'done')
         break
+      case 'skip_node':
+        nodeStates[event.nodeId] = 'skipped'
+        break
       case 'spawn_agent':
         if (!spawnedAgentIds.includes(event.agentId)) {
           spawnedAgentIds.push(event.agentId)
@@ -87,8 +94,14 @@ export function reducePlayback(
           if (state === 'current') markCounterfactual(id, 'blocked')
         }
         break
-      case 'verdict':
+      case 'evidence_verdict':
         currentVerdict = event.status
+        break
+      case 'impact_update':
+        impactAssessmentId = event.assessmentId
+        break
+      case 'calibrate':
+        calibratedFindingId = event.findingId
         break
       case 'stop':
         stopReason = event.reason
@@ -115,6 +128,8 @@ export function reducePlayback(
     visibleEvidenceIds,
     activeReplan,
     currentVerdict,
+    impactAssessmentId,
+    calibratedFindingId,
     stopReason,
     spawnedAgentIds,
     complete,
@@ -124,8 +139,10 @@ export function reducePlayback(
 export const NODE_KIND_LABELS: Record<string, string> = {
   inspect: 'Inspect',
   replan: 'Replan',
-  verdict: 'Verdict',
+  verdict: 'Evidence verdict',
   counterfactual: 'Counterfactual',
+  skip: 'Skipped',
+  planner: 'Plan',
 }
 
 export const NODE_STATE_LABELS: Record<NodePlayState, string> = {
@@ -142,9 +159,11 @@ const NODE_KIND_PURPOSE: Record<string, string> = {
     'Read the cited manuscript sources and test the allegation against what the paper actually says.',
   replan:
     'A specialist is requested because the current evidence is not enough. The replan budget is bounded.',
-  verdict: 'Record the validity of the critique and stop if the remaining evidence cannot be obtained.',
+  verdict: 'Record the evidence verdict and stop if the remaining evidence cannot be obtained.',
+  skip: 'This tool is not invoked for this paper. The skip reason comes from the review plan.',
+  planner: 'The director chooses which verification tools to run.',
   counterfactual:
-    'Hold the rest of the paper fixed and test whether a targeted change moves the review.',
+    'Optional impact tool: hold the rest of the paper fixed and test whether a defined intervention changes claim support.',
 }
 
 export interface NodeInspection {
@@ -158,7 +177,9 @@ export interface NodeInspection {
   evidenceIds: string[]
   spawnedAgentIds: string[]
   replan?: ReplanEvent
-  verdict?: FindingValidity
+  verdict?: EvidenceVerdict
+  impactAssessmentId?: string
+  calibratedFindingId?: string
   stopReason?: string
   started: boolean
   hasOutput: boolean
@@ -169,7 +190,7 @@ function purposeFor(node: WorkflowNodeData, relation?: string): string {
   if (node.subtitle) parts.push(node.subtitle + '.')
   const kindPurpose = node.kind ? NODE_KIND_PURPOSE[node.kind] : undefined
   if (kindPurpose) parts.push(kindPurpose)
-  else parts.push(`Run the “${node.label}” check in the defender route.`)
+  else parts.push(`Run the “${node.label}” check in the verification workflow.`)
   if (relation) parts.push(`Entered from the previous step as: ${relation}.`)
   return parts.join(' ')
 }
@@ -195,7 +216,9 @@ export function inspectWorkflowNode(
   let started = false
   let message: string | undefined
   let replan: ReplanEvent | undefined
-  let verdict: FindingValidity | undefined
+  let verdict: EvidenceVerdict | undefined
+  let impactAssessmentId: string | undefined
+  let calibratedFindingId: string | undefined
   let stopReason: string | undefined
 
   for (const event of applied) {
@@ -231,8 +254,17 @@ export function inspectWorkflowNode(
       case 'replan':
         replan = event.replan
         break
-      case 'verdict':
+      case 'evidence_verdict':
         verdict = event.status
+        break
+      case 'impact_update':
+        impactAssessmentId = event.assessmentId
+        break
+      case 'calibrate':
+        calibratedFindingId = event.findingId
+        break
+      case 'skip_node':
+        stopReason = event.reason
         break
       case 'stop':
         stopReason = event.reason
@@ -254,10 +286,12 @@ export function inspectWorkflowNode(
     spawnedAgentIds,
     replan,
     verdict,
+    impactAssessmentId,
+    calibratedFindingId,
     stopReason,
     started,
     hasOutput:
-      Boolean(message || replan || verdict || stopReason) ||
+      Boolean(message || replan || verdict || impactAssessmentId || calibratedFindingId || stopReason) ||
       sourceIds.length > 0 ||
       evidenceIds.length > 0 ||
       spawnedAgentIds.length > 0,

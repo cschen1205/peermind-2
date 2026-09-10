@@ -15,6 +15,7 @@ const TRACE_STATUS: Record<NonNullable<AskResponse['toolTrace']>[number]['status
 export function AskResponseView({ response }: { response: AskResponse }) {
   const navigate = useNavigate()
   const runAskAction = useDemoStore((s) => s.runAskAction)
+  const askScope = useDemoStore((s) => s.ask.scope)
   const isFallback = response.answer === ASK_FALLBACK
 
   function handleAction(action: NonNullable<AskResponse['actions']>[number]) {
@@ -30,10 +31,11 @@ export function AskResponseView({ response }: { response: AskResponse }) {
       }
     }
     if (
-      (action.type === 'open_finding' || action.type === 'open_investigation') &&
+      (action.type === 'open_finding' || action.type === 'open_verification') &&
       action.targetId
     ) {
-      navigate(`/challenge/${action.targetId}`)
+      const impact = action.type === 'open_verification' && askScope === 'impact'
+      navigate(`/verify/${action.targetId}${impact ? '?panel=impact' : ''}`)
     }
   }
 

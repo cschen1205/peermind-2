@@ -13,7 +13,16 @@ export interface PaperMetadata {
   abstract?: string
   pdfAsset?: string
   previewMode?: 'pdf' | 'page_images' | 'excerpt_only'
+  conferenceStyle?: ConferenceStyle
 }
+
+export type ConferenceStyle =
+  | 'iclr'
+  | 'icml'
+  | 'neurips'
+  | 'acl'
+  | 'aaai'
+  | 'generic'
 
 export interface PaperSection {
   id: string
@@ -33,6 +42,7 @@ export type SourceType =
   | 'appendix'
   | 'code'
   | 'external'
+  | 'reference'
 
 export type HighlightRole =
   | 'claim'
@@ -63,9 +73,30 @@ export interface SourceRecord {
   externalUrl?: string
 }
 
+export type PaperNodeType =
+  | 'contribution'
+  | 'claim'
+  | 'method'
+  | 'assumption'
+  | 'equation'
+  | 'experiment'
+  | 'dataset'
+  | 'baseline'
+  | 'metric'
+  | 'result'
+  | 'table'
+  | 'figure'
+  | 'limitation'
+  | 'appendix'
+  | 'reference'
+  | 'scope'
+  | 'gap'
+  | 'question'
+  | 'evidence'
+
 export interface PaperNode {
   id: string
-  type: 'method' | 'claim' | 'evidence' | 'gap' | 'question'
+  type: PaperNodeType
   label: string
   sourceIds: string[]
   summary?: string

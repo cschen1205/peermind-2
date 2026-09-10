@@ -6,15 +6,23 @@ import type { ComparisonInputBundle, ComparisonPreset, HumanReviewInput } from '
 
 export function emptyHumanReview(index: number): HumanReviewInput {
   return {
-    id: `HR-${String(index).padStart(2, '0')}`,
-    label: `Human Reviewer ${index}`,
+    id: `RV-${String(index).padStart(2, '0')}`,
+    label: `Reviewer ${index}`,
     reviewText: '',
     sourceType: 'manual',
   }
 }
 
 export function emptyComparisonInputs(): ComparisonInputBundle {
-  return { humanReviews: [emptyHumanReview(1)] }
+  return { humanReviews: [emptyHumanReview(1), emptyHumanReview(2)] }
+}
+
+export function nextReviewIndex(reviews: HumanReviewInput[]): number {
+  const fromIds = reviews.map((review) => {
+    const match = review.id.match(/(\d+)$/)
+    return match ? Number(match[1]) : 0
+  })
+  return Math.max(0, ...fromIds) + 1
 }
 
 export type ComparisonParseResult =

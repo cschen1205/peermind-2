@@ -1,0 +1,20 @@
+{
+  "schemaVersion": "2.0",
+  "defaultDemoId": "model-soups-v2",
+  "intake": "user-pdf-upload",
+  "demos": [
+    {
+      "id": "model-soups-v2",
+      "label": "MonoSoup evidence-based review",
+      "paperAsset": "/papers/sample_paper_v1.pdf",
+      "demoPackage": "./model-soups-v2.demo.json",
+      "comparisonFixture": "./model-soups-v1.comparison.json",
+      "previewMode": "pdf",
+      "compatibility": {
+        "demoDataPackage": "2.0",
+        "comparisonInput": "1.0",
+        "minimumFrontendDesign": "3.0"
+      }
+    }
+  ]
+}

@@ -39,11 +39,12 @@ export function UnderstandPage() {
           <p className="eyebrow">01 / Understand</p>
           <h1 className="type-h1">Read the paper. Map the evidence.</h1>
           <p className="mt-3 max-w-[720px] text-pm-muted">
-            A source-linked graph becomes key points, then specialist reviewers propose critiques.
+            A source-linked graph becomes key points, then the director plans which reviewers and
+            verifiers to run.
           </p>
         </div>
-        <Link to="/review">
-          <Button>Continue to Review →</Button>
+        <Link to="/plan">
+          <Button>Continue to Plan →</Button>
         </Link>
       </div>
 

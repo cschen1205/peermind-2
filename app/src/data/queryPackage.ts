@@ -1,14 +1,28 @@
 import type { DemoDataPackage } from '@/types/demoPackage'
-import type { FindingRecord, FindingValidity } from '@/types/finding'
-import type { CounterfactualRecord, InvestigationRecord } from '@/types/investigation'
+import type { EvidenceVerdict, FindingRecord, FindingStatus } from '@/types/finding'
 import type { PaperNode, PaperSection, SourceRecord, SourceType } from '@/types/paper'
+import type { CounterfactualRecord, ImpactAssessment, VerificationRecord } from '@/types/verification'
 
 export const NODE_TYPE_LABELS: Record<PaperNode['type'], string> = {
-  method: 'Method',
+  contribution: 'Contribution',
   claim: 'Claim',
-  evidence: 'Evidence',
+  method: 'Method',
+  assumption: 'Assumption',
+  equation: 'Equation',
+  experiment: 'Experiment',
+  dataset: 'Dataset',
+  baseline: 'Baseline',
+  metric: 'Metric',
+  result: 'Result',
+  table: 'Table',
+  figure: 'Figure',
+  limitation: 'Limitation',
+  appendix: 'Appendix',
+  reference: 'Reference',
+  scope: 'Scope',
   gap: 'Scope / Gap',
   question: 'Question',
+  evidence: 'Evidence',
 }
 
 export const SOURCE_TYPE_LABELS: Record<SourceType, string> = {
@@ -20,6 +34,7 @@ export const SOURCE_TYPE_LABELS: Record<SourceType, string> = {
   appendix: 'Appendix',
   code: 'Code',
   external: 'External',
+  reference: 'Reference',
 }
 
 export function getSource(pkg: DemoDataPackage, id: string): SourceRecord | undefined {
@@ -46,8 +61,16 @@ export function getFinding(pkg: DemoDataPackage, id: string): FindingRecord | un
   return pkg.findings.find((finding) => finding.id === id)
 }
 
+export function getAgent(pkg: DemoDataPackage, agentId: string) {
+  return pkg.reviewerRun.candidateAgents.find((agent) => agent.id === agentId)
+}
+
 export function getAgentLabel(pkg: DemoDataPackage, agentId: string): string {
-  return pkg.reviewerRun.candidateAgents.find((agent) => agent.id === agentId)?.label ?? agentId
+  return getAgent(pkg, agentId)?.label ?? agentId
+}
+
+export function findingsForAgent(pkg: DemoDataPackage, agentId: string): FindingRecord[] {
+  return pkg.findings.filter((finding) => finding.reviewerAgentId === agentId)
 }
 
 export function nodesForSources(pkg: DemoDataPackage, sourceIds: string[]): PaperNode[] {
@@ -84,61 +107,68 @@ export function deriveSectionId(pkg: DemoDataPackage, sourceIds: string[]): stri
   return first?.sectionId
 }
 
-export function investigationsByFinding(
+export function getVerification(
   pkg: DemoDataPackage,
   findingId: string,
-): InvestigationRecord[] {
-  return pkg.investigations.filter((item) => item.findingId === findingId)
+): VerificationRecord | undefined {
+  return pkg.verifications.find((item) => item.findingId === findingId)
 }
 
-export function getInvestigation(
-  pkg: DemoDataPackage,
-  findingId: string,
-): InvestigationRecord | undefined {
-  return investigationsByFinding(pkg, findingId)[0]
+export function findingIdsWithVerifications(pkg: DemoDataPackage): string[] {
+  return [...new Set(pkg.verifications.map((item) => item.findingId))]
 }
 
-export function counterfactualsByFinding(
+export function getImpactAssessment(
   pkg: DemoDataPackage,
   findingId: string,
-): CounterfactualRecord[] {
-  const inv = getInvestigation(pkg, findingId)
-  const byId = inv?.counterfactualTestId
-    ? pkg.counterfactualTests.filter((item) => item.id === inv.counterfactualTestId)
-    : []
-  if (byId.length > 0) return byId
-  return pkg.counterfactualTests.filter((item) => item.findingId === findingId)
+): ImpactAssessment | undefined {
+  return pkg.impactAssessments.find((item) => item.findingId === findingId)
 }
 
 export function getCounterfactual(
   pkg: DemoDataPackage,
   findingId: string,
 ): CounterfactualRecord | undefined {
-  return counterfactualsByFinding(pkg, findingId)[0]
-}
-
-export function findingIdsWithInvestigations(pkg: DemoDataPackage): string[] {
-  return [...new Set(pkg.investigations.map((item) => item.findingId))]
-}
-
-export function findingIdsWithTests(pkg: DemoDataPackage): string[] {
-  return [...new Set(pkg.counterfactualTests.map((item) => item.findingId))]
-}
-
-export function trustProfileCounts(
-  findings: FindingRecord[],
-): Record<FindingValidity, number> {
-  const counts: Record<FindingValidity, number> = {
-    verified: 0,
-    supported: 0,
-    refuted: 0,
-    unverified: 0,
-    disputed: 0,
-    human_required: 0,
-    not_checked: 0,
+  const impact = getImpactAssessment(pkg, findingId)
+  if (impact?.counterfactualTestId) {
+    const byId = pkg.counterfactualTests.find((item) => item.id === impact.counterfactualTestId)
+    if (byId) return byId
   }
+  return pkg.counterfactualTests.find((item) => item.findingId === findingId)
+}
+
+export interface TrustProfile {
+  verdicts: Record<EvidenceVerdict, number>
+  statuses: Record<FindingStatus, number>
+}
+
+export function emptyTrustProfile(): TrustProfile {
+  return {
+    verdicts: {
+      supported: 0,
+      partially_supported: 0,
+      refuted: 0,
+      unverifiable: 0,
+      open_question: 0,
+    },
+    statuses: {
+      verified_high_impact: 0,
+      verified_moderate_impact: 0,
+      verified_low_impact: 0,
+      partially_supported: 0,
+      refuted: 0,
+      unverifiable: 0,
+      open_question: 0,
+      severity_downgraded: 0,
+    },
+  }
+}
+
+export function trustProfileCounts(findings: FindingRecord[]): TrustProfile {
+  const counts = emptyTrustProfile()
   for (const finding of findings) {
-    counts[finding.validity] += 1
+    counts.verdicts[finding.evidenceVerdict] += 1
+    counts.statuses[finding.status] += 1
   }
   return counts
 }

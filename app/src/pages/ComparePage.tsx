@@ -1,19 +1,23 @@
-import { useRef, useState } from 'react'
+import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { Lock } from 'lucide-react'
 import { ComparisonInspector } from '@/components/comparison/ComparisonInspector'
+import { ComparisonAgentReport } from '@/components/comparison/ComparisonAgentReport'
 import { ComparisonSummary } from '@/components/comparison/ComparisonSummary'
+import { ScoreComparison } from '@/components/comparison/ScoreComparison'
 import {
   FindingAlignment,
   themeMatchesFilter,
   type AlignmentFilter,
+  type StatusFilter,
 } from '@/components/comparison/FindingAlignment'
 import { ReviewInput } from '@/components/comparison/ReviewInput'
 import { EmptyState } from '@/components/EmptyState'
 import { WorkflowLayout } from '@/components/layout/WorkflowLayout'
 import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
-import { readJsonFile } from '@/data/adapters/jsonFileAdapter'
+import { readReviewFile } from '@/data/adapters/reviewFileAdapter'
+import { buildScorecard } from '@/data/extractReviewScores'
 import { useDemoStore } from '@/store/demoStore'
 
 export function ComparePage() {
@@ -26,13 +30,20 @@ export function ComparePage() {
   const setSelectedThemeId = useDemoStore((s) => s.setSelectedComparisonThemeId)
   const updateHumanReview = useDemoStore((s) => s.updateHumanReview)
   const addHumanReviewer = useDemoStore((s) => s.addHumanReviewer)
-  const setOptionalReview = useDemoStore((s) => s.setOptionalReview)
+  const removeHumanReviewer = useDemoStore((s) => s.removeHumanReviewer)
+  const runCompare = useDemoStore((s) => s.runCompare)
   const loadPreparedComparison = useDemoStore((s) => s.loadPreparedComparison)
-  const runPreparedCompare = useDemoStore((s) => s.runPreparedCompare)
-  const importComparisonJson = useDemoStore((s) => s.importComparisonJson)
-  const fileInput = useRef<HTMLInputElement>(null)
+  const importReviewParse = useDemoStore((s) => s.importReviewParse)
   const [filter, setFilter] = useState<AlignmentFilter>('all')
+  const [statusFilter, setStatusFilter] = useState<StatusFilter>('all')
+  const [questionFilter, setQuestionFilter] = useState<AlignmentFilter>('all')
+  const [questionStatusFilter, setQuestionStatusFilter] = useState<StatusFilter>('all')
   const [editing, setEditing] = useState(false)
+
+  useEffect(() => {
+    if (!pkg || !lockedRun || comparisonResult) return
+    void loadPreparedComparison()
+  }, [pkg, lockedRun, comparisonResult, loadPreparedComparison])
 
   if (!pkg) return null
 
@@ -44,10 +55,10 @@ export function ComparePage() {
         <div className="mt-7">
           <EmptyState
             title="Lock the PeerMind run first"
-            description="Independent reviews are loaded only after the generated review is locked on Report. The locked run does not change."
+            description="Independent reviews are loaded only after the generated review is locked on Synthesize. The locked run does not change."
             action={
-              <Link to="/report">
-                <Button>Go to Report</Button>
+              <Link to="/synthesize">
+                <Button>Go to Synthesize</Button>
               </Link>
             }
           />
@@ -57,11 +68,24 @@ export function ComparePage() {
   }
 
   const showInputs = !comparisonResult || editing
-  const selectedTheme = comparisonResult?.themes.find((theme) => theme.id === selectedThemeId)
+  const questionRows = comparisonResult?.questions ?? []
+  const allRows = comparisonResult ? [...comparisonResult.themes, ...questionRows] : []
+  const selectedTheme = allRows.find((theme) => theme.id === selectedThemeId)
+  const selectedFilter =
+    selectedTheme?.kind === 'question' ? questionFilter : filter
+  const selectedStatusFilter =
+    selectedTheme?.kind === 'question' ? questionStatusFilter : statusFilter
   const visibleSelected =
-    selectedTheme && comparisonResult && themeMatchesFilter(selectedTheme, filter)
+    selectedTheme && themeMatchesFilter(selectedTheme, selectedFilter, selectedStatusFilter)
       ? selectedTheme
-      : comparisonResult?.themes.find((theme) => themeMatchesFilter(theme, filter))
+      : comparisonResult?.themes.find((theme) => themeMatchesFilter(theme, filter, statusFilter)) ??
+        questionRows.find((theme) =>
+          themeMatchesFilter(theme, questionFilter, questionStatusFilter),
+        )
+  const uploadedReviewCount = comparisonInputs.humanReviews.filter((review) =>
+    review.reviewText.trim(),
+  ).length
+  const scorecard = comparisonResult ? buildScorecard(pkg, comparisonInputs) : undefined
 
   return (
     <WorkflowLayout stage="compare">
@@ -73,6 +97,9 @@ export function ComparePage() {
             Blind comparison: Yes
           </p>
         </div>
+        <Link to="/revise">
+          <Button variant="secondary">Check a revision →</Button>
+        </Link>
       </div>
 
       {showInputs ? (
@@ -95,38 +122,39 @@ export function ComparePage() {
 
           <Card className="gap-4 rounded-[11px] p-6 shadow-none ring-0">
             <p className="eyebrow">Comparison inputs</p>
+            <p className="text-[14px] text-pm-muted">
+              The demo comparison is loaded from
+              demo-data/model-soups-v1.comparison.json. Upload different reviews only if you want
+              to recompute live.
+            </p>
             <ReviewInput
               inputs={comparisonInputs}
-              onUpdateReview={(id, text) => updateHumanReview(id, { reviewText: text })}
+              onUpdateReview={updateHumanReview}
               onAddReviewer={addHumanReviewer}
-              onSetOptional={setOptionalReview}
+              onRemoveReviewer={removeHumanReviewer}
+              onUploadFile={(id, file) => {
+                const slot = comparisonInputs.humanReviews.find((review) => review.id === id)
+                const typedName = slot?.label.trim() ?? ''
+                const customName = /^Reviewer\s+\d+$/i.test(typedName) ? undefined : typedName
+                void readReviewFile(file).then((parsed) => {
+                  importReviewParse(id, parsed, customName)
+                })
+              }}
             />
             <div className="mt-2 flex flex-wrap gap-2">
-              <Button variant="secondary" onClick={() => fileInput.current?.click()}>
-                Import comparison JSON
-              </Button>
-              <input
-                ref={fileInput}
-                type="file"
-                accept="application/json,.json"
-                className="hidden"
-                onChange={(event) => {
-                  const file = event.target.files?.[0]
-                  event.target.value = ''
-                  if (!file) return
-                  void readJsonFile(file).then((raw) => {
-                    if (importComparisonJson(raw)) setEditing(false)
+              <Button
+                variant="secondary"
+                onClick={() => {
+                  void loadPreparedComparison().then((ok) => {
+                    if (ok) setEditing(false)
                   })
                 }}
-              />
-              <Button variant="secondary" onClick={() => {
-                if (loadPreparedComparison()) setEditing(false)
-              }}>
-                Load prepared comparison
+              >
+                Load stored comparison
               </Button>
               <Button
                 onClick={() => {
-                  if (runPreparedCompare()) setEditing(false)
+                  if (runCompare()) setEditing(false)
                 }}
               >
                 Compare Reviews →
@@ -137,22 +165,30 @@ export function ComparePage() {
       ) : comparisonResult ? (
         <div>
           <ComparisonSummary
-            humanReviewerCount={comparisonInputs.humanReviews.length}
+            reviewerCount={uploadedReviewCount || comparisonInputs.humanReviews.length}
             peerMindFindingCount={pkg.findings.length}
             summary={comparisonResult.summary}
           />
 
-          {comparisonUsedPrepared ? (
-            <p className="mt-4 text-[13px] text-pm-muted">
-              This demo uses the prepared alignment. Pasted text is shown as input, not scored by a
-              live matcher.
-            </p>
+          {comparisonResult.agentSummary ? (
+            <ComparisonAgentReport
+              summary={comparisonResult.agentSummary}
+              onSelect={setSelectedThemeId}
+            />
           ) : null}
 
-          <p className="mt-6 max-w-[72ch] text-[14px] leading-relaxed text-pm-ink">
-            Human reviews are independent reference points, not ground truth. Agreement does not
-            prove correctness, and disagreement does not imply PeerMind is wrong.
-          </p>
+          {comparisonUsedPrepared ? (
+            <p className="mt-4 text-[13px] text-pm-muted">
+              Weaknesses and questions are loaded from
+              demo-data/model-soups-v1.comparison.json. Only weaknesses count in the scored
+              comparison. Upload different reviews and click Compare Reviews to recompute live.
+            </p>
+          ) : (
+            <p className="mt-4 text-[13px] text-pm-muted">
+              Weaknesses are the scored comparison. Questions are listed separately and do not
+              count as missing PeerMind findings unless they restate a locked claim.
+            </p>
+          )}
 
           <div className="mt-3">
             <Button variant="secondary" size="sm" onClick={() => setEditing(true)}>
@@ -160,14 +196,40 @@ export function ComparePage() {
             </Button>
           </div>
 
-          <div className="mt-6 grid grid-cols-[minmax(0,1fr)_minmax(280px,0.9fr)] gap-5 max-[1100px]:grid-cols-1">
-            <FindingAlignment
-              themes={comparisonResult.themes}
-              selectedId={visibleSelected?.id}
-              filter={filter}
-              onFilter={setFilter}
-              onSelect={setSelectedThemeId}
-            />
+          {scorecard ? (
+            <div className="mt-6">
+              <ScoreComparison scorecard={scorecard} />
+            </div>
+          ) : null}
+
+          <div className="mt-6 grid grid-cols-[minmax(0,1.35fr)_minmax(280px,0.85fr)] gap-5 max-[1100px]:grid-cols-1">
+            <div className="grid gap-10">
+              <FindingAlignment
+                themes={comparisonResult.themes}
+                reviews={comparisonInputs.humanReviews}
+                pkg={pkg}
+                selectedId={visibleSelected?.id}
+                filter={filter}
+                statusFilter={statusFilter}
+                onFilter={setFilter}
+                onStatusFilter={setStatusFilter}
+                onSelect={setSelectedThemeId}
+              />
+              {questionRows.length > 0 ? (
+                <FindingAlignment
+                  mode="questions"
+                  themes={questionRows}
+                  reviews={comparisonInputs.humanReviews}
+                  pkg={pkg}
+                  selectedId={visibleSelected?.id}
+                  filter={questionFilter}
+                  statusFilter={questionStatusFilter}
+                  onFilter={setQuestionFilter}
+                  onStatusFilter={setQuestionStatusFilter}
+                  onSelect={setSelectedThemeId}
+                />
+              ) : null}
+            </div>
             <ComparisonInspector theme={visibleSelected} pkg={pkg} />
           </div>
         </div>

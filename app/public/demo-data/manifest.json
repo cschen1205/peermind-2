@@ -1,5 +1,5 @@
 {
-  "schemaVersion": "1.0",
+  "schemaVersion": "2.0",
   "defaultDemoId": "model-soups-v1",
   "intake": "user-pdf-upload",
   "demos": [
@@ -11,9 +11,9 @@
       "comparisonFixture": "./model-soups-v1.comparison.json",
       "previewMode": "pdf",
       "compatibility": {
-        "demoDataPackage": "1.0",
+        "demoDataPackage": "2.0",
         "comparisonInput": "1.0",
-        "minimumFrontendDesign": "2.0"
+        "minimumFrontendDesign": "3.0"
       }
     }
   ]

@@ -4,14 +4,14 @@ import { cn } from '@/lib/utils'
 
 const STEPS = [
   { id: 'understand', label: 'Understand', to: '/understand' },
+  { id: 'plan', label: 'Plan', to: '/plan' },
   { id: 'review', label: 'Review', to: '/review' },
-  { id: 'challenge', label: 'Challenge', to: '/challenge' },
-  { id: 'test', label: 'Test', to: '/test' },
-  { id: 'report', label: 'Report', to: '/report' },
+  { id: 'verify', label: 'Verify', to: '/verify' },
+  { id: 'synthesize', label: 'Synthesize', to: '/synthesize' },
 ] as const
 
 function stepHref(path: string, findingId?: string) {
-  if (path === '/challenge' || path === '/test') {
+  if (path === '/verify') {
     return findingId ? `${path}/${findingId}` : path
   }
   return path
@@ -74,19 +74,33 @@ export function WorkflowStepper({ current }: { current: string }) {
         <span className="text-[10px] font-bold tracking-[0.12em] text-pm-muted uppercase">
           Evaluation
         </span>
-        {packageReady ? (
+        <div className="flex items-center gap-2">
+          {packageReady ? (
+            <Link
+              to="/compare"
+              className={cn(
+                'text-[12px] font-medium',
+                current === 'compare' ? 'text-pm-accent' : 'text-pm-muted',
+              )}
+            >
+              Compare
+            </Link>
+          ) : (
+            <span className="text-[12px] text-pm-muted opacity-50">Compare</span>
+          )}
+          <span className="text-pm-line" aria-hidden="true">
+            ·
+          </span>
           <Link
-            to="/compare"
+            to="/revise"
             className={cn(
               'text-[12px] font-medium',
-              current === 'compare' ? 'text-pm-accent' : 'text-pm-muted',
+              current === 'revise' ? 'text-pm-accent' : 'text-pm-muted',
             )}
           >
-            Compare
+            Revise
           </Link>
-        ) : (
-          <span className="text-[12px] text-pm-muted opacity-50">Compare</span>
-        )}
+        </div>
       </div>
     </nav>
   )

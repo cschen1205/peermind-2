@@ -12,7 +12,7 @@ npm install
 npm run dev
 ```
 
-Open `http://localhost:5173`. Upload [`papers/sample_paper_v1.pdf`](./papers/sample_paper_v1.pdf) from the landing page, then walk Understand → Report → Compare. The demo processes the PDF and replays a prepared review: no live model and no network after the first local serve.
+Open `http://localhost:5173`. Upload [`papers/sample_paper_v1.pdf`](./papers/sample_paper_v1.pdf) from the landing page to load the bundled package, then walk Understand → Plan → Review → Verify → Synthesize → Compare. The demo processes the PDF and replays a prepared review: no live model and no network after the first local serve.
 
 ```bash
 npm run build

@@ -2,12 +2,8 @@ import { useState } from 'react'
 import { Link } from 'react-router-dom'
 import { WorkflowLayout } from '@/components/layout/WorkflowLayout'
 import { CritiqueCard } from '@/components/review/CritiqueCard'
-import { CritiqueContract } from '@/components/review/CritiqueContract'
-import { ReviewerRouter } from '@/components/review/ReviewerRouter'
-import { ReviewerTeam } from '@/components/review/ReviewerTeam'
 import { ReviewSummary } from '@/components/review/ReviewSummary'
-import { RoutingCallouts } from '@/components/review/RoutingCallouts'
-import { StatusPill } from '@/components/StatusPill'
+import { VerificationContract } from '@/components/review/VerificationContract'
 import {
   Accordion,
   AccordionContent,
@@ -16,8 +12,7 @@ import {
 } from '@/components/ui/accordion'
 import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
-import { findingIdsWithInvestigations, getFinding } from '@/data/queryPackage'
-import { cn } from '@/lib/utils'
+import { findingIdsWithVerifications, getFinding } from '@/data/queryPackage'
 import { useDemoStore } from '@/store/demoStore'
 
 export function ReviewPage() {
@@ -32,8 +27,9 @@ export function ReviewPage() {
     return finding ? [finding] : []
   })
   const contractFinding = contractFindingId ? getFinding(pkg, contractFindingId) : undefined
-  const selectedAgents = pkg.reviewerRun.candidateAgents.filter((agent) => agent.selected)
-  const nextFindingId = findingIdsWithInvestigations(pkg)[0] ?? findings[0]?.id
+  const nextFindingId = findingIdsWithVerifications(pkg)[0] ?? findings[0]?.id
+  const draftNotes = pkg.reviewerRun.review.draftNotes ?? []
+  const authorQuestions = pkg.reviewerRun.review.authorQuestions
 
   function inspectFinding(id: string) {
     if (!pkg) return
@@ -50,94 +46,71 @@ export function ReviewPage() {
     <WorkflowLayout stage="review">
       <div className="mb-7 flex items-end justify-between gap-5 max-[760px]:flex-col max-[760px]:items-start">
         <div>
-          <p className="eyebrow">02 / Review</p>
-          <h1 className="type-h1">A full review of the paper</h1>
+          <p className="eyebrow">03 / Review</p>
+          <h1 className="type-h1">Candidate findings, not the final review</h1>
           <p className="mt-3 max-w-[720px] text-pm-muted">
-            Specialist routing is visible, then the review decomposes into inspectable findings.
+            Reviewers propose inspectable findings. The conference review is written after
+            verification.
           </p>
         </div>
         {nextFindingId ? (
-          <Link to={`/challenge/${nextFindingId}`}>
-            <Button>Continue to Challenge →</Button>
+          <Link to={`/verify/${nextFindingId}`}>
+            <Button>Continue to Verify →</Button>
           </Link>
         ) : null}
       </div>
 
-      <div className="grid grid-cols-2 items-start gap-5 max-[960px]:grid-cols-1">
-        <Accordion multiple defaultValue={['routing', 'review']} className="gap-3">
-          <AccordionItem value="routing" className={sectionItemClass}>
+      {draftNotes.length > 0 ? (
+        <Accordion className="mb-5">
+          <AccordionItem value="draft" className={sectionItemClass}>
             <AccordionTrigger className={sectionTriggerClass}>
-              <SectionLabel
-                eyebrow="Process"
-                title="How reviewers were chosen"
-                meta={`${pkg.reviewerRun.signals.length} signals · ${selectedAgents.length} specialists`}
-              />
+              <span className="flex min-w-0 flex-1 flex-col items-start gap-1 pr-3 text-left">
+                <span className="eyebrow mb-0">Reviewer draft (unverified)</span>
+                <span className="text-[17px] font-[650] text-pm-ink">Unverified notes</span>
+                <span className="text-[13px] font-normal text-pm-muted">
+                  {draftNotes.length} notes · not the conference review
+                </span>
+              </span>
             </AccordionTrigger>
             <AccordionContent className={sectionContentClass}>
-              <div className="grid gap-7 pb-2">
-                <ReviewerRouter signals={pkg.reviewerRun.signals} />
-                <ReviewerTeam agents={pkg.reviewerRun.candidateAgents} />
-                <RoutingCallouts pkg={pkg} events={pkg.reviewerRun.routingEvents} />
-              </div>
-            </AccordionContent>
-          </AccordionItem>
-
-          <AccordionItem value="review" className={sectionItemClass}>
-            <AccordionTrigger className={sectionTriggerClass}>
-              <SectionLabel
-                eyebrow="Complete review"
-                title="Assessment, strengths, and questions"
-                meta={`${pkg.reviewerRun.review.strengths.length} strengths · ${pkg.reviewerRun.review.authorQuestions.length} questions`}
-              />
-            </AccordionTrigger>
-            <AccordionContent className={sectionContentClass}>
-              <ReviewSummary review={pkg.reviewerRun.review} />
+              <ReviewSummary review={pkg.reviewerRun.review} hideQuestions />
             </AccordionContent>
           </AccordionItem>
         </Accordion>
+      ) : null}
 
-        <Card className="p-5 shadow-none ring-0">
-          <SectionLabel
-            eyebrow="Candidate critiques"
-            title="Inspectable findings"
-            meta={`${findings.length} findings · inspect a contract to open the paper`}
-          />
-          <Accordion className="mt-3">
-            {findings.map((finding) => (
-              <AccordionItem
-                key={finding.id}
-                value={finding.id}
-                className="border-pm-line not-last:border-b"
-              >
-                <AccordionTrigger className="items-center gap-3 py-4 hover:no-underline">
-                  <span className="flex min-w-0 flex-1 flex-col items-start gap-1.5 pr-2">
-                    <span className="flex flex-wrap items-center gap-2">
-                      <span className="font-mono text-[12px] text-pm-accent">{finding.id}</span>
-                      <span className="rounded-[5px] bg-pm-status-unverified-fill px-2 py-1 text-[12px] font-bold text-pm-muted-2">
-                        {finding.category}
-                      </span>
-                    </span>
-                    <span className="line-clamp-2 text-[14px] font-normal leading-snug text-pm-ink">
-                      {finding.critique}
-                    </span>
-                  </span>
-                  <StatusPill status={finding.validity} />
-                </AccordionTrigger>
-                <AccordionContent className={cn(sectionContentClass, 'pb-4')}>
-                  <CritiqueCard
-                    finding={finding}
-                    pkg={pkg}
-                    embedded
-                    onInspect={inspectFinding}
-                  />
-                </AccordionContent>
-              </AccordionItem>
+      <Card className="p-5 shadow-none ring-0">
+        <p className="eyebrow mb-1">Candidate findings</p>
+        <h2 className="text-[17px] font-[650] text-pm-ink">Inspectable findings</h2>
+        <p className="mt-1 text-[13px] text-pm-muted">
+          {findings.length} findings · inspect a contract to open the paper
+        </p>
+        <div className="mt-5 grid gap-4">
+          {findings.map((finding) => (
+            <CritiqueCard
+              key={finding.id}
+              finding={finding}
+              pkg={pkg}
+              onInspect={inspectFinding}
+            />
+          ))}
+        </div>
+      </Card>
+
+      {authorQuestions.length > 0 ? (
+        <section className="mt-6 max-w-[80ch]">
+          <p className="eyebrow mb-3">Questions for later calibration</p>
+          <ul className="grid gap-2">
+            {authorQuestions.map((item) => (
+              <li key={item} className="text-[15px] text-pm-ink">
+                {item}
+              </li>
             ))}
-          </Accordion>
-        </Card>
-      </div>
+          </ul>
+        </section>
+      ) : null}
 
-      <CritiqueContract
+      <VerificationContract
         pkg={pkg}
         finding={contractFinding}
         open={Boolean(contractFinding)}
@@ -149,25 +122,6 @@ export function ReviewPage() {
   )
 }
 
-const sectionItemClass =
-  'rounded-[13px] border border-pm-line bg-pm-surface px-5 not-last:border-b-0'
+const sectionItemClass = 'rounded-[13px] border border-pm-line bg-pm-surface px-5'
 const sectionTriggerClass = 'items-center py-4 hover:no-underline'
 const sectionContentClass = '[&_a]:no-underline [&_p:not(:last-child)]:mb-0'
-
-function SectionLabel({
-  eyebrow,
-  title,
-  meta,
-}: {
-  eyebrow: string
-  title: string
-  meta?: string
-}) {
-  return (
-    <span className="flex min-w-0 flex-1 flex-col items-start gap-1 pr-3 text-left">
-      <span className="eyebrow mb-0">{eyebrow}</span>
-      <span className="text-[17px] font-[650] text-pm-ink">{title}</span>
-      {meta ? <span className="text-[13px] font-normal text-pm-muted">{meta}</span> : null}
-    </span>
-  )
-}

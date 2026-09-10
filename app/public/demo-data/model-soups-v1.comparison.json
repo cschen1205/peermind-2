@@ -3,168 +3,410 @@
   "inputs": {
     "humanReviews": [
       {
-        "id": "HR-mj9q",
-        "label": "Reviewer mj9q",
-        "reviewText": "The paper is practical and conceptually elegant, but the novelty beyond SVD-based methods is limited, the coefficient lacks theoretical grounding, and the soup terminology may overstate the relation to ensembling.",
-        "sourceType": "openreview"
+        "id": "BR-chatgpt-v1",
+        "label": "ChatGPT",
+        "reviewText": "Summary\n\nThis paper proposes MonoSoup, a post-hoc, data-free method intended to improve the in-distribution (ID) / out-of-distribution (OOD) trade-off of a single fine-tuned checkpoint. The motivation comes from Model Soups and ModelStock: the authors first analyze pairs of fine-tuned CLIP models and argue that successful weight merging is associated with alignment between fine-tuning updates. They then ask whether analogous useful structure can be extracted from only one checkpoint.\n\nMonoSoup decomposes each layer-wise fine-tuning update \\(\\Delta W = W_1-W_0\\) using SVD into a high-energy component and a low-energy component. Rather than discarding low-energy directions, the method reweights the two components using layer-specific coefficients derived from the singular-value spectrum and the amount of energy contained in the low-energy component. The resulting edited update is\n\n$$ W_{\\text{MonoSoup}}^{(\\ell)} =\\lambda_{\\text{High}}^{(\\ell)}W_{\\text{High}}^{(\\ell)} +\\lambda_{\\text{Low}}^{(\\ell)}W_{\\text{Low}}^{(\\ell)}. $$\n\nThe method is evaluated primarily on CLIP ViT models fine-tuned on ImageNet and evaluated on five natural distribution shifts, with additional experiments on Qwen3-0.6B. The reported results suggest improved OOD performance over the original fine-tuned checkpoint while generally preserving ID accuracy, with competitive results relative to Model Soups, ModelStock, Wise-FT, and LiNeS.\n\nI find the central problem relevant and the single-checkpoint setting practically interesting. However, I have substantial concerns about the conceptual justification of the proposed coefficients, some incorrect or misleading interpretations of the quantities used in the method, and the strength of the experimental evidence relative to the claims.\n\nStrengths\nPractically relevant problem. Requiring dozens of fine-tuned checkpoints, as in Model Soups, is often unrealistic. A post-hoc method operating from the pretrained model and one fine-tuned checkpoint is useful in practice. The paper motivates this setting clearly in the introduction.\nSimple and easy-to-apply method. MonoSoup is conceptually straightforward and does not require additional training data. The SVD-based decomposition is interpretable, and the distinction between dominant and residual update directions provides an intuitive lens for studying fine-tuning.\nInteresting observation regarding low-energy components. Figure 3 provides a useful empirical observation: while low-rank approximations appear sufficient on the standard multi-task arithmetic benchmark, aggressive truncation behaves differently for ImageNet fine-tuning under natural distribution shifts. In particular, even preserving approximately 95% of spectral energy can hurt both ID and OOD accuracy. This is arguably one of the more interesting observations in the paper.\nReasonably broad vision evaluation. The paper includes multiple CLIP checkpoints, five OOD datasets, zero-shot and linear-probe initializations, and an all-70-checkpoint visualization. This is considerably stronger than showing results for only one or two hand-selected checkpoints.\nComplementarity with Wise-FT is useful. Figure 4 suggests that using MonoSoup as the endpoint of Wise-FT interpolation can improve the resulting Pareto frontier. This is practically interesting because MonoSoup need not replace existing interpolation-based methods.\nMain weaknesses\n1. The quantity called cos α does not appear to measure alignment\n\nThis is my largest conceptual concern.\n\nThe paper defines\n\n$$ \\cos^2\\alpha^{(\\ell)} = \\frac{\\|W_{\\mathrm{Low}}^{(\\ell)}\\|_F^2} {\\|W^{(\\ell)}\\|_F^2}. $$\n\nAccording to the definition, this quantity is simply the fraction of the update energy contained in the low-energy component. Because \\(W_{\\mathrm{High}}\\) and \\(W_{\\mathrm{Low}}\\) are orthogonal SVD components, this quantity is determined almost directly by the energy threshold \\(R\\). Indeed, Appendix C derives\n\n$$ \\cos^2\\alpha = 1-P_k, $$\n\nwhere \\(P_k\\) is the fraction of spectral energy retained in the high-energy component.\n\nTherefore, I do not understand why this quantity is repeatedly described as “alignment”, or especially as alignment with the pretrained model.\n\nFor example, the paper states that this signal “quantifies how much of the fine-tuning update lies in low-energy directions,” which is accurate. But it later states that \\(\\cos\\alpha\\) “restores low-energy directions when they align with the pre-trained model,” and Appendix H calls it a “pre-training preservation signal.”\n\nI do not see how that interpretation follows mathematically.\n\nThere is no cosine similarity between \\(W_{\\mathrm{Low}}\\) and \\(W_0\\), nor between their induced representations. In fact, because \\(W_{\\mathrm{Low}}\\) is a component of \\(\\Delta W\\), its Frobenius norm alone says nothing about its geometric alignment with the pretrained parameters.\n\nThis issue is particularly important because the paper begins by motivating MonoSoup through geometric alignment between different task vectors, but the single-checkpoint method eventually replaces this notion with a residual-energy ratio that is not the same concept.\n\nI believe the paper needs either:\n\na revised interpretation that does not call this quantity alignment; or\nan actual single-model alignment measure demonstrating the claimed connection to the multi-model analysis.\n\nAt present, there seems to be a conceptual gap between Sections 3 and 4.\n\n2. \\(\\rho\\) and cos α are not as independent or complementary as the presentation suggests\n\nThe paper presents spectral decay\n\n$$ \\rho = \\left(\\frac{\\sigma_{k+1}}{\\sigma_1}\\right)^2 $$\n\nand \\(\\cos\\alpha\\) as “two complementary signals.” However, both quantities are computed from the same singular-value spectrum, and Appendix C explicitly establishes a tight relation between \\(R\\) and \\(\\cos\\alpha\\).\n\nFor a fixed energy threshold \\(R\\),\n\n$$ \\cos^2\\alpha = 1-P_k \\le 1-R. $$\n\nThus with the default \\(R=0.8\\), for example,\n\n$$ \\cos\\alpha \\le \\sqrt{0.2}\\approx0.447. $$\n\nThis makes \\(\\cos\\alpha\\) largely a consequence of the threshold and spectral distribution rather than an independent notion of geometry.\n\nI would like to see a clearer analysis of how much additional information \\(\\cos\\alpha\\) actually contributes beyond \\(R\\), \\(k\\), and \\(\\rho\\). A correlation analysis across layers/models would be informative.\n\n3. The derivation of the mixing rule is heuristic despite being described as “principled”\n\nThe final rule is\n\n$$ \\lambda_{\\mathrm{Low}} = \\rho+(1-\\rho)\\cos\\alpha,\\qquad \\lambda_{\\mathrm{High}}=1-\\lambda_{\\mathrm{Low}}. $$\n\nAppendix G argues that the first expression is uniquely obtained after imposing four boundary conditions and assuming a bilinear form.\n\nThis provides a reasonable design heuristic, but it does not establish that the rule should optimize ID/OOD generalization, nor that those boundary conditions are uniquely justified by the learning problem. Many other monotone functions could satisfy similar desired behavior if the bilinear assumption were removed.\n\nMore importantly, I do not see a comparable derivation for\n\n$$ \\lambda_{\\mathrm{High}} = 1-\\lambda_{\\mathrm{Low}}. $$\n\nWhy must the two coefficients sum to one?\n\nThe original fine-tuned update corresponds to\n\n$$ W_{\\mathrm{High}}+W_{\\mathrm{Low}}, $$\n\ni.e. coefficients \\((1,1)\\), not coefficients summing to one. Consequently, MonoSoup is not merely redistributing emphasis between the two subspaces; it also substantially shrinks the total task update.\n\nThis raises an important possibility: how much of the gain is simply due to layer-wise shrinkage toward the pretrained model?\n\nThe comparison with Wise-FT only partially addresses this, because Wise-FT uses a global coefficient whereas MonoSoup induces layer-dependent shrinkage. I would strongly encourage comparison against a simple layer-wise norm/shrinkage baseline using the same effective update magnitude but without the SVD decomposition.\n\n4. Several causal or semantic interpretations of high- and low-energy directions are stronger than the evidence supports\n\nThe manuscript frequently associates:\n\nhigh-energy directions → task-specific knowledge / specialization;\nlow-energy directions → pretrained/generalization information;\nhigh-energy directions → OOD-vulnerable representations.\n\nFor example, Appendix H states that the high-energy task directions “essentially represent the fine-tuning” and empirically correspond to representation drift that degrades OOD performance, while low-only preserves pretrained knowledge.\n\nThe CKA results are suggestive, but they do not establish this interpretation generally. They are shown primarily for the best-OOD and worst-OOD CLIP checkpoints, with ImageNet-A as the OOD dataset.\n\nCKA similarity to the pretrained representation is also not equivalent to retaining “knowledge,” nor does increased similarity establish that a particular spectral component is responsible for robustness.\n\nI would prefer the claims to be presented as empirical observations rather than as properties of the decomposition itself.\n\n5. The connection between the multi-model analysis and MonoSoup is weak\n\nSection 3 is framed as the key motivation for the method. It shows that pairwise model merging tends to work better when task vectors are aligned. The proposed Similarity-Filtered Greedy Soup further supports this observation.\n\nHowever, MonoSoup does not actually reproduce this mechanism within a single checkpoint.\n\nMulti-model alignment involves something of the form\n\n$$ \\cos(\\Delta W_i,\\Delta W_j), $$\n\nwhereas MonoSoup's central quantity depends on\n\n$$ \\|W_{\\mathrm{Low}}\\|/\\|\\Delta W\\|. $$\n\nThese are fundamentally different objects.\n\nAs written, the narrative is:\n\ngood model merging → aligned task vectors → therefore decompose one task vector by SVD → therefore low/high spectral components can approximate the same principle.\n\nI do not think the middle implication has been established.\n\nInterestingly, MonoSoup may still work empirically, but the current explanation overstates what Section 3 demonstrates about the proposed method.\n\n6. Experimental claims for the language-model setting are too strong given the evidence\n\nThe language evaluation uses only Qwen3-0.6B, with three fine-tuning configurations.\n\nThis is useful as an initial sanity check, but it is insufficient to support broad claims such as scaling “naturally” to LLMs or demonstrating generality across language models.\n\nThe improvements over the corresponding fine-tuned checkpoints are also relatively modest. For example:\n\nM-1 GSM8K: 55.8 → 56.7\nM-1 GSMPlus: 29.5 → 30.3\nM-2 GSMPlus: 30.8 → 31.7\nM-3 GSM8KPlatinum: 57.3 → 58.8.\n\nThese are approximately 0.5–1.5 point improvements, not large gains.\n\nIn particular, the manuscript states:\n\n“the largest gains observed on GSMPlus and GSM8KPlatinum (+9.2 points each).”\n\nI cannot reconcile this statement with Table 2.\n\nFor example, on M-1:\n\nGSMPlus: 29.5 → 30.3 = +0.8\nGSM8KPlatinum: 55.6 → 56.7 = +1.1\n\nEven relative to the base Qwen model, the numbers do not appear to yield +9.2 on both datasets.\n\nThis should be corrected.\n\nFurthermore, there are no error bars or multiple fine-tuning seeds. For sub-point-to-one-point differences, run-to-run variability could matter considerably.\n\n7. The computational cost of SVD is not adequately discussed\n\nThe method is repeatedly characterized as “lightweight,” “practical,” and an alternative that avoids the computational overhead of multiple checkpoints.\n\nWhile it certainly avoids training dozens of models, performing SVD independently on every large weight matrix of a modern LLM can itself be computationally and memory intensive.\n\nThis issue becomes increasingly important for 7B, 14B, 70B, etc. models.\n\nThe paper should report at least:\n\npreprocessing wall-clock time;\npeak memory;\nexact/full vs randomized/truncated SVD;\nstorage overhead;\ncomplexity as a function of matrix dimensions;\nwhether the method remains practical for realistically large foundation models.\n\nUsing Qwen3-0.6B does not adequately establish this.\n\n8. Evaluation of only four selected CLIP checkpoints in the main table can exaggerate the method's behavior\n\nTable 1 focuses on:\n\nbest ID,\nworst ID,\nbest OOD,\nworst OOD.\n\nThis does illustrate boundary cases, but it is not sufficient for demonstrating average effectiveness because extreme weak checkpoints naturally provide more room for improvement.\n\nThe appendix's all-70-checkpoint quiver plot is therefore important and should probably be elevated to the main paper.\n\nMore useful statistics would include across all 70 checkpoints:\n\nmean ID change;\nmean OOD change;\nmedian change;\npercentage of checkpoints improved on ID;\npercentage improved on OOD;\npercentage Pareto-improved;\nworst degradation;\nconfidence intervals.\n\nFigure 12 visually suggests that some checkpoints lose ID accuracy after MonoSoup. Quantifying this is necessary to support the “consistently” language used throughout the paper.\n\n9. The current manuscript contains no non-Transformer experiments\n\nThe evaluation is Transformer-only: CLIP ViTs and a small Qwen model. I do not find ConvNeXt, ResNet, or any other non-Transformer result in the supplied manuscript, including the appendix. This is a categorical gap. The paper should not claim architectural generality until such an experiment exists.\n\nAdditional questions / requested experiments\n\nI would ask the authors to address the following in rebuttal:\n\nWhy is \\(\\|W_{\\mathrm{Low}}\\|/\\|W\\|\\) called cosine alignment? What two objects are geometrically being aligned?\nWhy should \\(\\lambda_{\\mathrm{High}}+\\lambda_{\\mathrm{Low}}=1\\)? Please provide either a theoretical motivation or an ablation allowing the two coefficients to vary independently.\nShrinkage baseline: Can the authors compare MonoSoup against a layer-wise scalar shrinkage baseline that matches MonoSoup's resulting \\(\\|\\Delta W_\\ell\\|_F\\) but does not use spectral decomposition?\nFull 70-model statistics: Please report aggregate improvement and degradation statistics rather than only the four extreme checkpoints.\nStatistical reliability for Qwen: How many fine-tuning/evaluation seeds were used? Are differences of approximately 0.5–1 point statistically meaningful?\nLarger LMs: Does MonoSoup remain computationally feasible and effective on at least a several-billion-parameter model?\nSVD cost: What is the wall-clock and peak-memory cost of applying MonoSoup to CLIP ViT-L/14 and Qwen3-0.6B?\nClarify the “+9.2 points” language result, which appears inconsistent with Table 2.\nMinor comments\n\nThere are a number of presentation and proofreading problems that should be fixed. Examples include “each model corressponds,” “especially pronounced in the poor of (OOD+),” “furher assume,” “Our proposed MonoSoup demonstrates achieves,” “fine-tune and at a fixed context length,” and duplicated wording such as “Appendix Appendix H.” These are individually minor but sufficiently frequent to distract from the presentation.\n\nI also recommend using more conservative terminology than “representation collapse” whenever the paper is only measuring OOD accuracy degradation. Those phenomena are related but not necessarily identical.\n\nThe claim that the method “matches or exceeds” multi-model methods should also be qualified. For instance, in Table 1, Greedy Soup has substantially higher ID performance (81.0%) than the single-model MonoSoup variants, although MonoSoup can have better average OOD accuracy. The appropriate conclusion is therefore about the trade-off, rather than unqualified superiority.\n\nOverall assessment\n\nThe paper contains a promising practical idea and some interesting empirical observations, particularly the finding that low-energy update directions behave differently under large-scale ImageNet adaptation than in standard task-arithmetic settings.\n\nHowever, I currently see a significant mismatch between the conceptual story and the actual method. Most importantly, the quantity called \\(\\cos\\alpha\\) is not an alignment measure in the usual geometric sense; mathematically it is the square root of the residual spectral-energy fraction and is tightly coupled to \\(R\\). This weakens the claimed bridge from multi-model geometric alignment to single-model MonoSoup. In addition, the proposed mixing equation appears to introduce substantial update shrinkage, but the experiments do not isolate whether this rather than the spectral decomposition accounts for the gains.\n\nThe empirical results are encouraging enough that I would not dismiss the method, but stronger ablations and more precise claims are needed before I would be confident that the proposed explanation is correct and the improvements generalize beyond the evaluated settings.\n\nSuggested ICLR ratings\n\nSoundness: 2 / 4 — Fair\nThe empirical method appears to work, but key parts of its conceptual justification are insufficiently supported and some interpretations appear mathematically questionable.\n\nPresentation: 2 / 4 — Fair\nThe overall structure is understandable, but there are numerous wording issues, overstatements, and some confusing terminology.\n\nContribution: 3 / 4 — Good\nThe single-checkpoint, data-free setting is valuable, and the low-energy observation is interesting. The algorithm itself is relatively simple, however, and its conceptual novelty depends heavily on the currently weak alignment argument.\n\nOverall recommendation: 4 / 10 — Borderline Reject\n\nI would be open to moving toward 5 / 10 (Borderline Accept) if the rebuttal convincingly resolves the interpretation of \\(\\cos\\alpha\\), demonstrates that MonoSoup's gains cannot be explained primarily by layer-wise shrinkage, provides aggregate results across the 70 CLIP checkpoints, and clarifies the Qwen results.\n\nConfidence: 4 / 5.",
+        "sourceType": "other",
+        "fileName": "chatgpt_review_v1.md",
+        "ratings": [
+          {
+            "label": "Soundness",
+            "score": "2",
+            "scale": "4",
+            "scaleLabel": "Fair"
+          },
+          {
+            "label": "Presentation",
+            "score": "2",
+            "scale": "4",
+            "scaleLabel": "Fair"
+          },
+          {
+            "label": "Contribution",
+            "score": "3",
+            "scale": "4",
+            "scaleLabel": "Good"
+          },
+          {
+            "label": "Rating",
+            "score": "4",
+            "scale": "10",
+            "scaleLabel": "Borderline Reject"
+          },
+          {
+            "label": "Confidence",
+            "score": "4",
+            "scale": "5",
+            "scaleLabel": "High"
+          }
+        ]
       },
       {
-        "id": "HR-YMQp",
-        "label": "Reviewer YMQp",
-        "reviewText": "The method is lightweight and empirically strong, but the single-checkpoint storage motivation is unconvincing and evidence on another modality such as audio would strengthen applicability.",
-        "sourceType": "openreview"
+        "label": "OpenReview - Reviewer mj9q",
+        "reviewText": "Summary:\nThe paper introduces MonoSoup, a post-hoc, data-free method that improves the trade-off between in-distribution (ID) accuracy and out-of-distribution (OOD) robustness using only a single fine-tuned model. Motivated by the geometric principles underlying model soups, the authors propose to analyze a single model’s fine-tuning update via Singular Value Decomposition (SVD), decomposing it into high-energy (task-specific) and low-energy (residual/robust) components. These components are adaptively reweighted using a combination of spectral decay and alignment with pretrained weights, yielding a single edited checkpoint that better balances specialization and generalization.\n\nSoundness: 2: fair\nPresentation: 2: fair\nContribution: 2: fair\nStrengths:\nThe paper tackles a practical and well-motivated challenge: retaining OOD robustness without storing or training multiple fine-tuned checkpoints. Its formulation is conceptually elegant, connecting the empirical success of model soups to the internal spectral geometry of a single model. The SVD-based decomposition provides an interpretable view of fine-tuning dynamics, distinguishing high-energy task adaptation from low-energy robustness-preserving directions. The adaptive weighting rule is simple, closed-form, and data-free, making the approach easy to implement as a lightweight post-processing step.\n\nWeaknesses:\nLimited novelty beyond existing SVD-based merging.\nWhile the paper frames its contribution as extending model soups to a single-model setting, the actual main operation—SVD decomposition of the fine-tuning update followed by spectral weighting—closely parallels prior works (e.g., Task Singular Vectors, Model Merging with SVD). The paper’s novelty primarily lies in its interpretation rather than in a fundamentally new algorithmic principle.\n\nHeuristic coefficient design without theoretical grounding.\nThe adaptive weighting rule \n is intuitively motivated but lacks theoretical justification for why this functional form optimally balances ID and OOD trade-offs. There is no analysis of stability, sensitivity, or convergence properties with respect to R, ρ, or α, leaving the approach partly empirical.\n\nInterpretational overrstatement of “soup”.\nThe name MonoSoup implies model ensembling, yet the method operates as a single-model spectral reweighting rather than a true weight-space average. This conceptual mismatch may overstate its relation to model soups and obscure the fact that it performs deterministic, full-rank parameter editing rather than multi-model averaging.\n\nQuestions:\nBeyond natural ImageNet shifts, could MonoSoup be evaluated on stronger distributional or adversarial robustness benchmarks to validate its claimed generalization benefits?\n\nSince MonoSoup performs spectral reweighting rather than true model ensembling, what geometric evidence supports describing it as a “soup”? Would framing it as spectral anisotropic re-scaling be more accurate?\n\nConsidering prior fine-tuning mechanisms such as Spectral Adapter (Zhang & Pilanci, 2024) and other SVD-based spectral methods that already decompose pretrained weights to modulate singular directions, what specific conceptual or methodological advance distinguishes MonoSoup from this existing line of spectral fine-tuning approaches?\n\nFlag For Ethics Review: No ethics review needed.\nRating: 4: marginally below the acceptance threshold. But would not mind if paper is accepted\nConfidence: 4: You are confident in your assessment, but not absolutely certain. It is unlikely, but not impossible, that you did not understand some parts of the submission or that you are unfamiliar with some pieces of related work.\nCode Of Conduct: Yes",
+        "sourceType": "openreview",
+        "fileName": "human_review_v1.md",
+        "ratings": [
+          {
+            "label": "Soundness",
+            "score": "2",
+            "scale": "4",
+            "scaleLabel": "fair"
+          },
+          {
+            "label": "Presentation",
+            "score": "2",
+            "scale": "4",
+            "scaleLabel": "fair"
+          },
+          {
+            "label": "Contribution",
+            "score": "2",
+            "scale": "4",
+            "scaleLabel": "fair"
+          },
+          {
+            "label": "Rating",
+            "score": "4",
+            "scale": "10",
+            "scaleLabel": "marginally below the acceptance threshold"
+          },
+          {
+            "label": "Confidence",
+            "score": "4",
+            "scale": "5",
+            "scaleLabel": "High"
+          }
+        ],
+        "id": "HR-mj9q"
       },
       {
-        "id": "HR-q1EA",
-        "label": "Reviewer q1EA",
-        "reviewText": "The coefficient interpretation is unclear, Figure 3 may conflict with the truncation narrative, gains over LiNeS are marginal without variability, generality may be regime-dependent, and Figure 2 has a pair-count discrepancy.",
-        "sourceType": "openreview"
+        "label": "OpenReview - Reviewer YMQp",
+        "reviewText": "Summary:\nThis paper presents MonoSoup, a light-weight alternative to model soup's traditional weight-space based ensembling techniques leveraging multiple model checkpoints. More specifically, by leveraging the SVD to estimate a high and low energy weight estimates, MonoSoup is able to re-estimate the final model. Empirical evaluations shows that MonoSoup achieves strong OOD Generalization performance when compared with traditional model souping techniques.\n\nSoundness: 3: good\nPresentation: 3: good\nContribution: 3: good\nStrengths:\nThe reviewer notes the following strengths:\n\nThe paper presents a clear context for MonoSoup with a defined motivation for the development of the underlying methodology.\nThe proposed methodology (MonoSoup) is light-weight and readily applicable to real-world settings.\nMonoSoup showcases strong empirical performance across multiple models & tasks.\nThe author also provide strong intuitive background for MonoSoup through analysis, linking performance improvements to alignment between fine-tuning updates.\nWeaknesses:\nThe reviewer notes the following weaknesses:\n\nThe reviewer’s primary concern is that, while the paper’s motivation is clearly stated, the argument that storing only a single best-performing checkpoint necessitates the development of MonoSoup is unconvincing. In particular, the reviewer finds it unlikely that, in practice, there would be meaningful constraints on retaining multiple checkpoints during model training.\nAdditional evaluations on other modalities like audio would also provide even more compelling evidence for the applicability of MonoSoup.\nQuestions:\nAs noted in the weaknesses above, the reviewer encourages the authors to consider an alternative motivation for MonoSoup, rather than relying on the assumption that most models in practice need to be stored as single checkpoints.\n\nFlag For Ethics Review: No ethics review needed.\nRating: 6: marginally above the acceptance threshold. But would not mind if paper is rejected\nConfidence: 3: You are fairly confident in your assessment. It is possible that you did not understand some parts of the submission or that you are unfamiliar with some pieces of related work. Math/other details were not carefully checked.\nCode Of Conduct: Yes",
+        "sourceType": "openreview",
+        "fileName": "human_review_v1.md",
+        "ratings": [
+          {
+            "label": "Soundness",
+            "score": "3",
+            "scale": "4",
+            "scaleLabel": "good"
+          },
+          {
+            "label": "Presentation",
+            "score": "3",
+            "scale": "4",
+            "scaleLabel": "good"
+          },
+          {
+            "label": "Contribution",
+            "score": "3",
+            "scale": "4",
+            "scaleLabel": "good"
+          },
+          {
+            "label": "Rating",
+            "score": "6",
+            "scale": "10",
+            "scaleLabel": "marginally above the acceptance threshold"
+          },
+          {
+            "label": "Confidence",
+            "score": "3",
+            "scale": "5",
+            "scaleLabel": "Medium"
+          }
+        ],
+        "id": "HR-YMQp"
       },
       {
-        "id": "HR-gzvH",
-        "label": "Reviewer gzvH",
-        "reviewText": "The creative single-checkpoint reframing is strong, but plug-and-play practicality is qualified by selecting R, architecture diversity is limited, and a label-free selection rule is needed.",
-        "sourceType": "openreview"
+        "label": "OpenReview - Reviewer q1EA",
+        "reviewText": "Summary:\nThis paper addresses a key limitation of existing model merging methodologies, pointing out their reliance on two or more checkpoints. The authors argue this is misaligned with realistic scenarios where often only a single, best-performing model is stored. To address this gap, the paper proposes MonoSoup, a method that utilizes only a single checkpoint. Using SVD, the method decomposes the single model's update into a high-energy component, which is associated with in-distribution (ID) specialization, and a low-energy component for out-of-distribution (OOD) robustness. By performing a principled weighted sum of these two components, MonoSoup demonstrates performance that is comparable to existing multi-checkpoint techniques.\n\nSoundness: 2: fair\nPresentation: 3: good\nContribution: 2: fair\nStrengths:\nThe paper addresses a practical and realistic scenario. While many merging methods like Model Soups require access to dozens of checkpoints, real-world applications often only store a single, best-performing model. The paper's focus on improving robustness from this single-mode\" setting is a valuable contribution.\nThe core idea of using SVD to decompose the fine-tuning update into high-energy (specialization) and low-energy (robustness) components is interesting.\nWeaknesses:\nThe paper's method for calculating the alignment coefficient \n (lines 264-269) is theoretically unclear and appears to be a significant conceptual leap. The method computes the cosine similarity between two conceptually different entities: the pre-trained weights \n (an absolute state vector) and the low-energy update \n (a difference vector). There is no clear justification for why the alignment between a 'state' and a 'difference' is a meaningful measure of knowledge preservation. Even if \n is interpreted as a vector from the origin, it is not the pre-training update direction (unless initialized from zero), making the interpretation of this alignment ambiguous.\nThe paper's key motivation is undermined by its own data in Figure 3b. The text claims that truncating low-energy components harms both ID and OOD accuracy, motivating the need for re-weighting (MonoSoup). However, the graph clearly shows that moderate truncation (e.g., at a rank fraction of \n) improves OOD performance (red line).\nThe performance gains over LiNeS reported in Table 2 are marginal. These small improvements might not be statistically significant and could be due to experimental variance or checkpoint selection. The claim of consistent improvement should be validated more robustly, for instance, by reporting results over multiple runs or across a wider set of fine-tuned checkpoints (beyond the three presented).\nThe method's generality appears limited. The key motivation (low-energy components are crucial for robustness) is derived only from the large-scale ImageNet benchmark (Figure 3b) and is explicitly shown to be absent in the small-scale 20-task benchmark. This suggests MonoSoup may only be effective for fine-tuning on large-scale datasets. This contradiction also weakens the general claim that low-energy components inherently encode OOD robustness, as this does not hold for the small-task setting.\nQuestions:\nThe paper argues that high task vector alignment is beneficial for merging models performing the same task. This contrasts with principles in related fields like multi-task learning, where orthogonality (low similarity) is often preferred to prevent task interference[1,2]. Could the authors clarify how to reconcile these two perspectives? Is the principle that \"high alignment is beneficial\" strictly limited to the same-task merging scenario?\nIn Figure 2, the authors state they analyze 2,409 pairwise combinations. However, \n (choosing 2 pairs from 70 models) should result in 2,415 combinations. Could the authors clarify this small discrepancy?\nThe symbol \n is used in the context of Similarity-Filtered Greedy Soup without a formal definition.\nTable 1 introduces \"MonoSoup (Pairwise Models)\" as a baseline. The main text, however, focuses on applying MonoSoup to a single model. Could the authors briefly explain in the main text how MonoSoup is adapted and applied in the pairwise setting?\n[1] Ilharco, Gabriel, et al. \"Editing models with task arithmetic.\" ICLR (2023). [2] Davari, MohammadReza, and Eugene Belilovsky. \"Model breadcrumbs: Scaling multi-task model merging with sparse masks.\" ECCV (2024).\n\nFlag For Ethics Review: No ethics review needed.\nRating: 4: marginally below the acceptance threshold. But would not mind if paper is accepted\nConfidence: 5: You are absolutely certain about your assessment. You are very familiar with the related work and checked the math/other details carefully.\nCode Of Conduct: Yes",
+        "sourceType": "openreview",
+        "fileName": "human_review_v1.md",
+        "ratings": [
+          {
+            "label": "Soundness",
+            "score": "2",
+            "scale": "4",
+            "scaleLabel": "fair"
+          },
+          {
+            "label": "Presentation",
+            "score": "3",
+            "scale": "4",
+            "scaleLabel": "good"
+          },
+          {
+            "label": "Contribution",
+            "score": "2",
+            "scale": "4",
+            "scaleLabel": "fair"
+          },
+          {
+            "label": "Rating",
+            "score": "4",
+            "scale": "10",
+            "scaleLabel": "marginally below the acceptance threshold"
+          },
+          {
+            "label": "Confidence",
+            "score": "5",
+            "scale": "5",
+            "scaleLabel": "Very high"
+          }
+        ],
+        "id": "HR-q1EA"
       },
       {
-        "id": "HR-Yqvj",
-        "label": "Reviewer Yqvj",
-        "reviewText": "The method is simple and well motivated, but gains on strong checkpoints are modest, variability is missing, and the per-layer impact of the coefficients needs deeper analysis.",
-        "sourceType": "openreview"
+        "label": "OpenReview - Reviewer gzvH",
+        "reviewText": "Summary:\nThis paper proposes MonoSoup, a data-free, single-checkpoint approach that recovers the robustness benefits of model soups without needing multiple models. For each layer, the fine-tuning update is decomposed into high- and low-energy components (via SVD), and adaptive, per-layer interpolation coefficients are computed to recombine them. This reweighting preserves task-specific signal while retaining useful low-energy structure, leading to improvements in both in-distribution accuracy and out-of-distribution robustness. Results on vision and language tasks show consistent gains over strong baselines.\n\nSoundness: 3: good\nPresentation: 3: good\nContribution: 3: good\nStrengths:\nOriginality\nThe contribution is not a new mathematical primitive but a creative reframing of model-soup robustness: the authors show how to extract and reweight within-checkpoint structure so that a single fine-tuned model can capture much of the benefit previously obtained by averaging multiple checkpoints. This shift from multi-model soups to a single-checkpoint soup removes the dependency on collecting and storing many models while preserving the core geometric insight behind soups.\n\nQuality\nThe work is methodologically sound: the approach is clearly specified; comparisons include strong, relevant baselines; and the analysis (including ablations) is thoughtful and aligns with the stated hypotheses. Empirical results are broad enough to support the main claims and are reported with appropriate care.\n\nClarity\nThe paper is well written and well structured. The narrative flows logically from diagnosis to method to evaluation, with enough technical detail to enable reproduction.\n\nStrengths\nConceptual creativity: Derives a soup-like effect from a single checkpoint via principled layer-wise decomposition and reweighting.\nPractical impact: Eliminates the burden of curating and storing many checkpoints, reducing compute and storage overhead.\nEmpirical thoroughness: Extensive evaluations with clear, interpretable metrics and ablations that illuminate why the method works.\nPresentation quality: Clear exposition, intuitive figures, and actionable implementation details.\nWeaknesses:\n“Plug-and-play” claim needs qualification. The method’s practicality is somewhat overstated because performance depends on choosing (R) well. Without a label-free selection rule, users may not reliably reproduce the reported gains.\n\nLimited architecture diversity. Most results are on Transformer backbones (CLIP ViTs, a small LLM). It remains unclear whether the recommended (R) range and mixing rule transfer to non-Transformer models (e.g., ConvNeXt, ResNet, MoE).\n\nArchitecture- and dataset-dependence of (R). Intuitively, the optimal (R) should vary with model family and pretraining corpus, yet the paper suggests a fairly stable mid-range (R) for ViTs across datasets without explaining why.\n\nQuestions:\nsee weakness,\n\nHyperparameter selection for (R). While the paper argues that performance is fairly stable for mid-range (R), the work would benefit from a practical, label-free procedure to set (R). In particular, because spectral decay and alignment statistics can vary across architectures (e.g., ViT vs. ConvNets vs. LLMs) and datasets, a fixed default may not transfer. Please (i) justify when/why a mid-range (R) should generalize, and (ii) provide a simple selection rule that practitioners can use without labels.\n\nFlag For Ethics Review: No ethics review needed.\nRating: 6: marginally above the acceptance threshold. But would not mind if paper is rejected\nConfidence: 5: You are absolutely certain about your assessment. You are very familiar with the related work and checked the math/other details carefully.\nCode Of Conduct: Yes",
+        "sourceType": "openreview",
+        "fileName": "human_review_v1.md",
+        "ratings": [
+          {
+            "label": "Soundness",
+            "score": "3",
+            "scale": "4",
+            "scaleLabel": "good"
+          },
+          {
+            "label": "Presentation",
+            "score": "3",
+            "scale": "4",
+            "scaleLabel": "good"
+          },
+          {
+            "label": "Contribution",
+            "score": "3",
+            "scale": "4",
+            "scaleLabel": "good"
+          },
+          {
+            "label": "Rating",
+            "score": "6",
+            "scale": "10",
+            "scaleLabel": "marginally above the acceptance threshold"
+          },
+          {
+            "label": "Confidence",
+            "score": "5",
+            "scale": "5",
+            "scaleLabel": "Very high"
+          }
+        ],
+        "id": "HR-gzvH"
+      },
+      {
+        "label": "OpenReview - Reviewer Yqvj",
+        "reviewText": "Summary:\nIn the paper the authors introduce MonoSoup, a datafree approach that tries to obtain the same benefits of Model soups (recover ood perfomenace after finetuning) while using only a single checkpoint instead of averaging multiple checkpoints. The method applies Singular Value Decomposition (SVD) to each layer update in order to split into high and low energy directions. Monosoup then re-weights these directions with adaptive and layer-wise coeffiecients computed taking into account the spectral and geometric structure of the model. The authors provide experiments on both visual and text domain, using CLIP as reference model for vision domain and Qwen as model for text.\n\nSoundness: 3: good\nPresentation: 3: good\nContribution: 3: good\nStrengths:\nSimple and straightforward method: easy to implement and interpret.\n\nWell-motivated and theoretically rooted in spectral theory: the work builds on the spectral and geometric understanding of model merging, offering clear insights into when and why merging succeeds.\n\nStrong analysis and motivation: the introduction of Similarity-Filtered Greedy Soup empirically validates that spectral alignment is a strong proxy for effective merging, motivating the proposed method.\n\nEfficiency: achieves the benefits of model soups while requiring only a single checkpoint, MonoSoup performs on par with or better than Model Soup and Model Stock while being much cheaper to apply.\n\nComplementary with existing techniques: for example combining the method with Wise-FT further improves the ID–OOD performances.\n\nWeaknesses:\nModest gains on strong checkpoints: While MonoSoup provides clear improvements on weaker or representation-collapsed models, it yields only modest gains on already well-performing checkpoints. In those cases, the improvements over Model Soup or Model Stock are often within the margin of variability, suggesting that the method’s primary advantage lies more in efficiency rather than in delivering substantial performance breakthroughs for strong models.\n\nLack of variability reporting: The experimental tables report mean accuracies but omit measures of variability such as standard deviations. Given that several of the reported improvements are relatively small (often around 0.5–1%), including standard deviations would help assess the statistical significance and robustness of these gains. The absence of such information makes it difficult to judge whether improvements are consistent or within the expected variance of fine-tuning noise.\n\nLimited interpretability of coefficients: while layer-wise coefficients are derived analytically, their per-layer impact on robustness is not deeply analyzed.\n\nQuestions:\nFor the models labeled M-x (e.g., M-14, M-31, etc.), could the authors clarify what these identifiers refer to? Do they correspond to specific fine-tuning configurations ?\n\nFlag For Ethics Review: No ethics review needed.\nRating: 6: marginally above the acceptance threshold. But would not mind if paper is rejected\nConfidence: 4: You are confident in your assessment, but not absolutely certain. It is unlikely, but not impossible, that you did not understand some parts of the submission or that you are unfamiliar with some pieces of related work.\nCode Of Conduct: Yes",
+        "sourceType": "openreview",
+        "fileName": "human_review_v1.md",
+        "ratings": [
+          {
+            "label": "Soundness",
+            "score": "3",
+            "scale": "4",
+            "scaleLabel": "good"
+          },
+          {
+            "label": "Presentation",
+            "score": "3",
+            "scale": "4",
+            "scaleLabel": "good"
+          },
+          {
+            "label": "Contribution",
+            "score": "3",
+            "scale": "4",
+            "scaleLabel": "good"
+          },
+          {
+            "label": "Rating",
+            "score": "6",
+            "scale": "10",
+            "scaleLabel": "marginally above the acceptance threshold"
+          },
+          {
+            "label": "Confidence",
+            "score": "4",
+            "scale": "5",
+            "scaleLabel": "High"
+          }
+        ],
+        "id": "HR-Yqvj"
       }
-    ],
-    "baselineReview": {
-      "id": "BR-chatgpt-v1",
-      "label": "ChatGPT independent review",
-      "reviewText": "An independent long-form review emphasizing coefficient semantics, signal dependence, update shrinkage, the Section 3-to-4 bridge, language effect-size arithmetic, SVD cost, aggregate CLIP statistics, and presentation accuracy.",
-      "sourceType": "other"
-    }
+    ]
   },
   "result": {
     "themes": [
       {
-        "id": "CT01",
-        "label": "Contribution differentiation",
+        "id": "LT01",
+        "label": "The single-checkpoint setting is practically useful, but the paper does not establish how much of the algorithmic contribution goes beyond existing SVD-based editing and scaling methods.",
+        "kind": "weakness",
         "peerMindFindingIds": [
           "F01"
         ],
         "humanFindingIds": [
-          "HF01"
+          "HR-mj9q-P01"
         ],
-        "baselineFindingIds": [],
         "relation": "shared",
         "sourceIds": [
           "MS1-S03",
-          "MS1-S04"
+          "MS1-S04",
+          "MS1-S08",
+          "MS1-S11"
         ],
-        "defenderStatus": "human_required",
-        "explanation": "Both identify a contribution-positioning question; PeerMind abstains from external novelty adjudication."
+        "verificationStatus": "partially_supported",
+        "excerpts": [
+          {
+            "reviewId": "HR-mj9q",
+            "reviewerLabel": "OpenReview - Reviewer mj9q",
+            "text": "Limited novelty beyond existing SVD-based merging. While the paper frames its contribution as extending model soups to a single-model setting, the actual main operation—SVD decomposition of the fine-tuning update followed by spectral weighting—closely parallels prior works (e.g., Task Singular Vectors, Model Merging with SVD). The paper’s novelty primarily lies in its interpretation rather than in a fundamentally new…"
+          }
+        ],
+        "explanation": "Raised as a weakness by OpenReview - Reviewer mj9q. PeerMind verified this shared finding against the manuscript."
       },
       {
-        "id": "CT02",
-        "label": "Weighting-rule theory",
+        "id": "LT02",
+        "label": "The boundary-condition derivation gives the coefficient useful mathematical properties, but it does not show that the chosen conditions are necessary for OOD robustness or that the rule is optimal.",
+        "kind": "weakness",
         "peerMindFindingIds": [
           "F02"
         ],
         "humanFindingIds": [
-          "HF02",
-          "HF16"
-        ],
-        "baselineFindingIds": [
-          "BF03",
-          "BF06"
+          "BR-chatgpt-v1-P03",
+          "HR-mj9q-P02",
+          "HR-Yqvj-P03"
         ],
         "relation": "shared",
         "sourceIds": [
           "MS1-S11",
+          "MS1-S12",
+          "MS1-S18",
           "MS1-S22",
           "MS1-S23"
         ],
-        "defenderStatus": "supported",
-        "explanation": "All three reviews question the explanatory reach of the rule; PeerMind preserves its proven monotonicity and bounded sensitivity."
+        "verificationStatus": "verified_high_impact",
+        "excerpts": [
+          {
+            "reviewId": "BR-chatgpt-v1",
+            "reviewerLabel": "ChatGPT",
+            "text": "The derivation of the mixing rule is heuristic despite being described as “principled” The final rule is $$ \\lambda_{\\mathrm{Low}} = \\rho+(1-\\rho)\\cos\\alpha,\\qquad \\lambda_{\\mathrm{High}}=1-\\lambda_{\\mathrm{Low}}. $$ Appendix G argues that the first expression is uniquely obtained after imposing four boundary conditions and assuming a bilinear form. This provides a reasonable design heuristic, but it does not establi…"
+          },
+          {
+            "reviewId": "HR-mj9q",
+            "reviewerLabel": "OpenReview - Reviewer mj9q",
+            "text": "Heuristic coefficient design without theoretical grounding. The adaptive weighting rule is intuitively motivated but lacks theoretical justification for why this functional form optimally balances ID and OOD trade-offs. There is no analysis of stability, sensitivity, or convergence properties with respect to R, ρ, or α, leaving the approach partly empirical."
+          },
+          {
+            "reviewId": "HR-Yqvj",
+            "reviewerLabel": "OpenReview - Reviewer Yqvj",
+            "text": "Limited interpretability of coefficients: while layer-wise coefficients are derived analytically, their per-layer impact Limited interpretability of coefficients: while layer-wise coefficients are derived analytically, their per-layer impact on robustness is not deeply analyzed."
+          }
+        ],
+        "explanation": "Raised as a weakness by ChatGPT, OpenReview - Reviewer mj9q, OpenReview - Reviewer Yqvj. PeerMind verified this shared finding against the manuscript."
       },
       {
-        "id": "CT03",
-        "label": "Architecture and label-free evidence across versions",
+        "id": "LT03",
+        "label": "The categorical allegation that the current supplied manuscript contains no non-Transformer evidence is false, although that concern was valid for the original submission and the revised automatic-selection procedure remains underdocumented.",
+        "kind": "weakness",
         "peerMindFindingIds": [
           "F03"
         ],
         "humanFindingIds": [
-          "HF12",
-          "HF13"
+          "BR-chatgpt-v1-P09"
         ],
-        "baselineFindingIds": [],
         "relation": "disagreement",
         "sourceIds": [
+          "MS1-S17",
+          "MS1-S18",
           "MS1-S24",
           "MS1-S25"
         ],
-        "defenderStatus": "refuted",
-        "explanation": "The human concern was valid for the original submission snapshot. ConvNeXt and automatic-selection evidence added during rebuttal resolve the categorical absence only in the revised snapshot; documentation breadth remains limited."
+        "verificationStatus": "refuted",
+        "excerpts": [
+          {
+            "reviewId": "BR-chatgpt-v1",
+            "reviewerLabel": "ChatGPT",
+            "text": "The current manuscript contains no non-Transformer experiments The evaluation is Transformer-only: CLIP ViTs and a small Qwen model. I do not find ConvNeXt, ResNet, or any other non-Transformer result in the supplied manuscript, including the appendix. This is a categorical gap. The paper should not claim architectural generality until such an experiment exists."
+          }
+        ],
+        "explanation": "Raised as a weakness by ChatGPT. PeerMind verified the current manuscript against this finding."
       },
       {
-        "id": "CT04",
-        "label": "Language OOD protocol",
+        "id": "LT04",
+        "label": "The language evaluation labels harder or different tasks as OOD without isolating distribution shift, so it supports cross-benchmark generalization but not a clean OOD-robustness conclusion.",
+        "kind": "weakness",
         "peerMindFindingIds": [
           "F04"
         ],
         "humanFindingIds": [],
-        "baselineFindingIds": [],
         "relation": "peermind_only",
         "sourceIds": [
           "MS1-S14",
-          "MS1-S15"
+          "MS1-S15",
+          "MS1-S18"
         ],
-        "defenderStatus": "supported",
-        "explanation": "PeerMind isolates the distribution-shift definition separately from numerical language claims."
+        "verificationStatus": "verified_high_impact",
+        "excerpts": [],
+        "explanation": "PeerMind raised this finding; it was not raised as a weakness in the uploaded reviews."
       },
       {
-        "id": "CT05",
-        "label": "Large-model scalability profile",
+        "id": "LT05",
+        "label": "The manuscript motivates MonoSoup through large-model checkpoint cost but provides no accuracy, runtime, peak-memory, or storage profile at the 2–7B+ scale where the claimed advantage is most consequential.",
+        "kind": "weakness",
         "peerMindFindingIds": [
           "F05"
         ],
-        "humanFindingIds": [],
-        "baselineFindingIds": [
-          "BF08"
+        "humanFindingIds": [
+          "BR-chatgpt-v1-P07"
         ],
         "relation": "shared",
         "sourceIds": [
           "MS1-S01",
+          "MS1-S03",
+          "MS1-S14",
           "MS1-S18"
         ],
-        "defenderStatus": "supported",
-        "explanation": "PeerMind and ChatGPT request quality and resource measurements at realistic model scale; PeerMind explicitly preserves the logical one-checkpoint savings."
+        "verificationStatus": "verified_high_impact",
+        "excerpts": [
+          {
+            "reviewId": "BR-chatgpt-v1",
+            "reviewerLabel": "ChatGPT",
+            "text": "The computational cost of SVD is not adequately discussed The method is repeatedly characterized as “lightweight,” “practical,” and an alternative that avoids the computational overhead of multiple checkpoints. While it certainly avoids training dozens of models, performing SVD independently on every large weight matrix of a modern LLM can itself be computationally and memory intensive. This issue becomes increasingl…"
+          }
+        ],
+        "explanation": "Raised as a weakness by ChatGPT. PeerMind verified this shared finding against the manuscript."
       },
       {
-        "id": "CT06",
-        "label": "Figure 2 pair count",
+        "id": "LT06",
+        "label": "Figure 2 reports 2,409 pairs from 70 checkpoints, but 70 choose 2 equals 2,415 and no six-pair exclusion is disclosed.",
+        "kind": "weakness",
         "peerMindFindingIds": [
           "F06"
         ],
-        "humanFindingIds": [
-          "HF10"
-        ],
-        "relation": "shared",
+        "humanFindingIds": [],
+        "relation": "peermind_only",
         "sourceIds": [
           "MS1-S06"
         ],
-        "defenderStatus": "verified",
-        "explanation": "Both identify the exact six-pair discrepancy; deterministic arithmetic verifies it."
+        "verificationStatus": "severity_downgraded",
+        "excerpts": [],
+        "explanation": "PeerMind raised this finding; it was not raised as a weakness in the uploaded reviews."
       },
       {
-        "id": "CT07",
-        "label": "Effect size and uncertainty",
+        "id": "LT07",
+        "label": "The strongest-checkpoint improvements are modest and are reported without variability estimates, making statistical reliability difficult to assess even though weak checkpoints improve substantially.",
+        "kind": "weakness",
         "peerMindFindingIds": [
           "F07"
         ],
         "humanFindingIds": [
-          "HF08",
-          "HF14",
-          "HF15"
-        ],
-        "baselineFindingIds": [
-          "BF09"
+          "BR-chatgpt-v1-P08",
+          "HR-q1EA-P03",
+          "HR-Yqvj-P01",
+          "HR-Yqvj-P02"
         ],
         "relation": "shared",
         "sourceIds": [
@@ -172,99 +414,41 @@
           "MS1-S20",
           "MS1-S26"
         ],
-        "defenderStatus": "supported",
-        "explanation": "All three preserve large weak-checkpoint gains while requesting uncertainty and aggregate all-checkpoint statistics."
+        "verificationStatus": "verified_moderate_impact",
+        "excerpts": [
+          {
+            "reviewId": "BR-chatgpt-v1",
+            "reviewerLabel": "ChatGPT",
+            "text": "Evaluation of only four selected CLIP checkpoints in the main table can exaggerate the method's behavior Table 1 focuses on: best ID, worst ID, best OOD, worst OOD. This does illustrate boundary cases, but it is not sufficient for demonstrating average effectiveness because extreme weak checkpoints naturally provide more room for improvement. The appendix's all-70-checkpoint quiver plot is therefore important and sho…"
+          },
+          {
+            "reviewId": "HR-q1EA",
+            "reviewerLabel": "OpenReview - Reviewer q1EA",
+            "text": "The performance gains over LiNeS reported in Table 2 are marginal. The performance gains over LiNeS reported in Table 2 are marginal. These small improvements might not be statistically significant and could be due to experimental variance or checkpoint selection. The claim of consistent improvement should be validated more robustly, for instance, by reporting results over multiple runs or across a wider set of fine-…"
+          },
+          {
+            "reviewId": "HR-Yqvj",
+            "reviewerLabel": "OpenReview - Reviewer Yqvj",
+            "text": "Modest gains on strong checkpoints: While MonoSoup provides clear improvements on weaker or representation-collapsed mod Modest gains on strong checkpoints: While MonoSoup provides clear improvements on weaker or representation-collapsed models, it yields only modest gains on already well-performing checkpoints. In those cases, the improvements over Model Soup or Model Stock are often within the margin of variability…"
+          },
+          {
+            "reviewId": "HR-Yqvj",
+            "reviewerLabel": "OpenReview - Reviewer Yqvj",
+            "text": "Lack of variability reporting: The experimental tables report mean accuracies but omit measures of variability such as standard deviations. Lack of variability reporting: The experimental tables report mean accuracies but omit measures of variability such as standard deviations. Given that several of the reported improvements are relatively small (often around 0.5–1%), including standard deviations would help assess…"
+          }
+        ],
+        "explanation": "Raised as a weakness by ChatGPT, OpenReview - Reviewer q1EA, OpenReview - Reviewer Yqvj. PeerMind verified this shared finding against the manuscript."
       },
       {
-        "id": "CT08",
-        "label": "Soup terminology",
-        "peerMindFindingIds": [],
-        "humanFindingIds": [
-          "HF03"
-        ],
-        "relation": "human_only",
-        "sourceIds": [
-          "MS1-S01",
-          "MS1-S03"
-        ],
-        "defenderStatus": "not_checked",
-        "explanation": "A presentation/positioning issue not selected for the seven-finding PeerMind run."
-      },
-      {
-        "id": "CT09",
-        "label": "Storage-centered motivation",
-        "peerMindFindingIds": [],
-        "humanFindingIds": [
-          "HF04"
-        ],
-        "relation": "human_only",
-        "sourceIds": [
-          "MS1-S01",
-          "MS1-S03"
-        ],
-        "defenderStatus": "not_checked",
-        "explanation": "A practical-premise judgment not independently checked."
-      },
-      {
-        "id": "CT10",
-        "label": "Audio modality coverage",
-        "peerMindFindingIds": [],
-        "humanFindingIds": [
-          "HF05"
-        ],
-        "relation": "human_only",
-        "sourceIds": [
-          "MS1-S18"
-        ],
-        "defenderStatus": "not_checked",
-        "explanation": "A useful extension rather than a demonstrated defect in the bounded vision/language evidence."
-      },
-      {
-        "id": "CT11",
-        "label": "Truncation narrative",
-        "peerMindFindingIds": [],
-        "humanFindingIds": [
-          "HF07",
-          "HF09"
-        ],
-        "relation": "human_only",
-        "sourceIds": [
-          "MS1-S09",
-          "MS1-S21"
-        ],
-        "defenderStatus": "not_checked",
-        "explanation": "A graph-reading and regime-generality issue outside the selected seven findings."
-      },
-      {
-        "id": "CT12",
-        "label": "Notation and checkpoint documentation",
-        "peerMindFindingIds": [],
-        "humanFindingIds": [
-          "HF11",
-          "HF17"
-        ],
-        "baselineFindingIds": [
-          "BF10"
-        ],
-        "relation": "shared",
-        "sourceIds": [
-          "MS1-S05",
-          "MS1-S13"
-        ],
-        "defenderStatus": "not_checked",
-        "explanation": "Human and ChatGPT reviews identify presentation problems outside the selected scientific investigations."
-      },
-      {
-        "id": "CT13",
-        "label": "Residual energy mislabeled as alignment",
+        "id": "LT08",
+        "label": "The quantity named cosine alpha is a normalized residual-energy magnitude, not a cosine alignment between the low-energy update and pretrained weights; describing it as alignment or a pretrained-preservation signal overstates what its definition establishes.",
+        "kind": "weakness",
         "peerMindFindingIds": [
           "F08"
         ],
         "humanFindingIds": [
-          "HF06"
-        ],
-        "baselineFindingIds": [
-          "BF01"
+          "BR-chatgpt-v1-P01",
+          "HR-q1EA-P01"
         ],
         "relation": "shared",
         "sourceIds": [
@@ -272,18 +456,30 @@
           "MS1-S23",
           "MS1-S28"
         ],
-        "defenderStatus": "verified",
-        "explanation": "All three identify the conceptual ambiguity; PeerMind resolves the exact identity and limits the verdict without rejecting the empirical CKA observation."
+        "verificationStatus": "verified_high_impact",
+        "excerpts": [
+          {
+            "reviewId": "BR-chatgpt-v1",
+            "reviewerLabel": "ChatGPT",
+            "text": "The quantity called cos α does not appear to measure alignment This is my largest conceptual concern. The paper defines $$ \\cos^2\\alpha^{(\\ell)} = \\frac{\\|W_{\\mathrm{Low}}^{(\\ell)}\\|_F^2} {\\|W^{(\\ell)}\\|_F^2}. $$ According to the definition, this quantity is simply the fraction of the update energy contained in the low-energy component. Because \\(W_{\\mathrm{High}}\\) and \\(W_{\\mathrm{Low}}\\) are orthogonal SVD compone…"
+          },
+          {
+            "reviewId": "HR-q1EA",
+            "reviewerLabel": "OpenReview - Reviewer q1EA",
+            "text": "The paper's method for calculating the alignment coefficient (lines 264-269) is theoretically unclear and appears to be a significant conceptual leap. The method computes the cosine similarity between two conceptually different entities: the pre-trained weights (an absolute state vector) and the low-energy update (a difference vector). There is no clear justification for why the alignment between a 'state' and a 'dif…"
+          }
+        ],
+        "explanation": "Raised as a weakness by ChatGPT, OpenReview - Reviewer q1EA. PeerMind verified this shared finding against the manuscript."
       },
       {
-        "id": "CT14",
-        "label": "Dependence among spectral signals",
+        "id": "LT09",
+        "label": "The manuscript presents spectral decay and cosine alpha as complementary signals, but both are functions of the same singular-value spectrum and cosine-squared alpha is constrained directly by the R-selected retained energy.",
+        "kind": "weakness",
         "peerMindFindingIds": [
           "F09"
         ],
-        "humanFindingIds": [],
-        "baselineFindingIds": [
-          "BF02"
+        "humanFindingIds": [
+          "BR-chatgpt-v1-P02"
         ],
         "relation": "shared",
         "sourceIds": [
@@ -291,72 +487,707 @@
           "MS1-S17",
           "MS1-S28"
         ],
-        "defenderStatus": "supported",
-        "explanation": "PeerMind and ChatGPT identify the dependency; PeerMind avoids the stronger unsupported conclusion that the signals are completely redundant."
+        "verificationStatus": "verified_high_impact",
+        "excerpts": [
+          {
+            "reviewId": "BR-chatgpt-v1",
+            "reviewerLabel": "ChatGPT",
+            "text": "\\(\\rho\\) and cos α are not as independent or complementary as the presentation suggests The paper presents spectral decay $$ \\rho = \\left(\\frac{\\sigma_{k+1}}{\\sigma_1}\\right)^2 $$ and \\(\\cos\\alpha\\) as “two complementary signals.” However, both quantities are computed from the same singular-value spectrum, and Appendix C explicitly establishes a tight relation between \\(R\\) and \\(\\cos\\alpha\\). For a fixed energy thre…"
+          }
+        ],
+        "explanation": "Raised as a weakness by ChatGPT. PeerMind verified this shared finding against the manuscript."
       },
       {
-        "id": "CT15",
-        "label": "Layer-wise shrinkage alternative",
+        "id": "LT10",
+        "label": "Forcing lambda High plus lambda Low to equal one scales both spectral components below their fine-tuned coefficients of one, so the reported gains may partly arise from layer-wise shrinkage toward the pretrained model rather than spectral separation itself.",
+        "kind": "weakness",
         "peerMindFindingIds": [
           "F10"
         ],
-        "humanFindingIds": [],
-        "baselineFindingIds": [
-          "BF04"
+        "humanFindingIds": [
+          "BR-chatgpt-v1-P03"
         ],
         "relation": "shared",
         "sourceIds": [
           "MS1-S08",
+          "MS1-S11",
           "MS1-S16",
           "MS1-S29"
         ],
-        "defenderStatus": "supported",
-        "explanation": "PeerMind converts ChatGPT's strong hypothesis into a causal contract with a norm-matched scalar baseline and an explicit stop rule."
+        "verificationStatus": "verified_high_impact",
+        "excerpts": [
+          {
+            "reviewId": "BR-chatgpt-v1",
+            "reviewerLabel": "ChatGPT",
+            "text": "The derivation of the mixing rule is heuristic despite being described as “principled” The final rule is $$ \\lambda_{\\mathrm{Low}} = \\rho+(1-\\rho)\\cos\\alpha,\\qquad \\lambda_{\\mathrm{High}}=1-\\lambda_{\\mathrm{Low}}. $$ Appendix G argues that the first expression is uniquely obtained after imposing four boundary conditions and assuming a bilinear form. This provides a reasonable design heuristic, but it does not establi…"
+          }
+        ],
+        "explanation": "Raised as a weakness by ChatGPT. PeerMind verified this shared finding against the manuscript."
       },
       {
-        "id": "CT16",
-        "label": "Multi-model to single-model geometry bridge",
+        "id": "LT11",
+        "label": "Section 3 studies cosine alignment between distinct same-task model updates, while MonoSoup operates on the singular spectrum of one update; the manuscript does not establish the implication connecting these different objects.",
+        "kind": "weakness",
         "peerMindFindingIds": [
           "F11"
         ],
-        "humanFindingIds": [],
-        "baselineFindingIds": [
-          "BF05"
+        "humanFindingIds": [
+          "BR-chatgpt-v1-P05"
         ],
         "relation": "shared",
         "sourceIds": [
           "MS1-S05",
           "MS1-S07",
+          "MS1-S08",
+          "MS1-S12",
           "MS1-S30"
         ],
-        "defenderStatus": "supported",
-        "explanation": "PeerMind and ChatGPT agree the quantities differ; PeerMind preserves the broader intuition and offers a wording-level falsifier or a substantive mapping."
+        "verificationStatus": "verified_high_impact",
+        "excerpts": [
+          {
+            "reviewId": "BR-chatgpt-v1",
+            "reviewerLabel": "ChatGPT",
+            "text": "The connection between the multi-model analysis and MonoSoup is weak Section 3 is framed as the key motivation for the method. It shows that pairwise model merging tends to work better when task vectors are aligned. The proposed Similarity-Filtered Greedy Soup further supports this observation. However, MonoSoup does not actually reproduce this mechanism within a single checkpoint. Multi-model alignment involves some…"
+          }
+        ],
+        "explanation": "Raised as a weakness by ChatGPT. PeerMind verified this shared finding against the manuscript."
       },
       {
-        "id": "CT17",
-        "label": "Claimed +9.2 language gains",
+        "id": "LT12",
+        "label": "The statement that GSM Plus and GSM8K Platinum each improve by +9.2 points is not supported by the Table 2 fine-tuned-to-MonoSoup differences and lacks a clearly stated alternative reference baseline.",
+        "kind": "weakness",
         "peerMindFindingIds": [
           "F12"
         ],
-        "humanFindingIds": [],
-        "baselineFindingIds": [
-          "BF07"
+        "humanFindingIds": [
+          "BR-chatgpt-v1-P06"
         ],
         "relation": "shared",
         "sourceIds": [
           "MS1-S14",
           "MS1-S27"
         ],
-        "defenderStatus": "verified",
-        "explanation": "PeerMind turns the ChatGPT observation into a bounded table-to-text consistency check requiring exact calculation provenance."
+        "verificationStatus": "verified_moderate_impact",
+        "excerpts": [
+          {
+            "reviewId": "BR-chatgpt-v1",
+            "reviewerLabel": "ChatGPT",
+            "text": "Experimental claims for the language-model setting are too strong given the evidence The language evaluation uses only Qwen3-0.6B, with three fine-tuning configurations. This is useful as an initial sanity check, but it is insufficient to support broad claims such as scaling “naturally” to LLMs or demonstrating generality across language models. The improvements over the corresponding fine-tuned checkpoints are also…"
+          }
+        ],
+        "explanation": "Raised as a weakness by ChatGPT. PeerMind verified this shared finding against the manuscript."
+      },
+      {
+        "id": "LR01",
+        "label": "Causal or semantic readings of high- and low-energy directions (knowledge, pretrained information, OOD vulnerability) are stronger than the CKA and accuracy evidence supports.",
+        "kind": "weakness",
+        "peerMindFindingIds": [],
+        "humanFindingIds": [
+          "BR-chatgpt-v1-P04"
+        ],
+        "relation": "human_only",
+        "sourceIds": [
+          "MS1-S12",
+          "MS1-S23"
+        ],
+        "verificationStatus": "verified_high_impact",
+        "excerpts": [
+          {
+            "reviewId": "BR-chatgpt-v1",
+            "reviewerLabel": "ChatGPT",
+            "text": "Several causal or semantic interpretations of high- and low-energy directions are stronger than the evidence supports The manuscript frequently associates: high-energy directions → task-specific knowledge / specialization; low-energy directions → pretrained/generalization information; high-energy directions → OOD-vulnerable representations. For example, Appendix H states that the high-energy task directions “essentia…"
+          }
+        ],
+        "explanation": "Raised by ChatGPT. Appendix CKA cases are consistent with representation drift, but they do not establish that high-energy directions are task knowledge or that low-energy directions are pretrained information. Same evidence-verdict and impact rules as locked findings."
+      },
+      {
+        "id": "LR02",
+        "label": "Calling the method a soup overstates a single-checkpoint spectral reweighting as ensembling; spectral anisotropic rescaling is the more accurate description.",
+        "kind": "weakness",
+        "peerMindFindingIds": [],
+        "humanFindingIds": [
+          "HR-mj9q-P03"
+        ],
+        "relation": "human_only",
+        "sourceIds": [
+          "MS1-S03",
+          "MS1-S08"
+        ],
+        "verificationStatus": "severity_downgraded",
+        "excerpts": [
+          {
+            "reviewId": "HR-mj9q",
+            "reviewerLabel": "OpenReview - Reviewer mj9q",
+            "text": "Interpretational overrstatement of “soup”. The name MonoSoup implies model ensembling, yet the method operates as a single-model spectral reweighting rather than a true weight-space average. This conceptual mismatch may overstate its relation to model soups and obscure the fact that it performs deterministic, full-rank parameter editing rather than multi-model averaging."
+          }
+        ],
+        "explanation": "Raised by OpenReview - Reviewer mj9q. MonoSoup edits one update; it does not average multiple checkpoints. The naming mismatch is true but does not change the algorithm, so severity is downgraded."
+      },
+      {
+        "id": "LR03",
+        "label": "The claim that practical storage of only one fine-tuned checkpoint necessitates MonoSoup is unconvincing; an alternative motivation would be stronger.",
+        "kind": "weakness",
+        "peerMindFindingIds": [],
+        "humanFindingIds": [
+          "HR-YMQp-P01"
+        ],
+        "relation": "human_only",
+        "sourceIds": [
+          "MS1-S01",
+          "MS1-S03"
+        ],
+        "verificationStatus": "partially_supported",
+        "excerpts": [
+          {
+            "reviewId": "HR-YMQp",
+            "reviewerLabel": "OpenReview - Reviewer YMQp",
+            "text": "The reviewer’s primary concern is that, while the paper’s motivation is clearly stated, the argument that storing only a The reviewer’s primary concern is that, while the paper’s motivation is clearly stated, the argument that storing only a single best-performing checkpoint necessitates the development of MonoSoup is unconvincing. In particular, the reviewer finds it unlikely that, in practice, there would be meanin…"
+          }
+        ],
+        "explanation": "Raised by OpenReview - Reviewer YMQp. Avoiding a multi-checkpoint soup is a real cost argument, but “therefore only one checkpoint is stored and MonoSoup is necessary” is not established. Partially supported."
+      },
+      {
+        "id": "LR04",
+        "label": "Figure 3b undercuts the claim that truncating low-energy components harms both ID and OOD, because moderate truncation can improve OOD.",
+        "kind": "weakness",
+        "peerMindFindingIds": [],
+        "humanFindingIds": [
+          "HR-q1EA-P02"
+        ],
+        "relation": "human_only",
+        "sourceIds": [
+          "MS1-S09"
+        ],
+        "verificationStatus": "verified_high_impact",
+        "excerpts": [
+          {
+            "reviewId": "HR-q1EA",
+            "reviewerLabel": "OpenReview - Reviewer q1EA",
+            "text": "The paper's key motivation is undermined by its own data in Figure 3b. The paper's key motivation is undermined by its own data in Figure 3b. The text claims that truncating low-energy components harms both ID and OOD accuracy, motivating the need for re-weighting (MonoSoup). However, the graph clearly shows that moderate truncation (e.g., at a rank fraction of ) improves OOD performance (red line)."
+          }
+        ],
+        "explanation": "Raised by OpenReview - Reviewer q1EA. The manuscript uses truncation harm to motivate reweighting, while the plotted moderate-rank OOD curve can rise. The tension is supported on the supplied figure."
+      },
+      {
+        "id": "LR05",
+        "label": "The low-energy-robustness motivation is taken from large-scale ImageNet fine-tuning and is shown not to hold on the small-scale 20-task benchmark, so generality is limited.",
+        "kind": "weakness",
+        "peerMindFindingIds": [],
+        "humanFindingIds": [
+          "HR-q1EA-P04"
+        ],
+        "relation": "human_only",
+        "sourceIds": [
+          "MS1-S09",
+          "MS1-S18"
+        ],
+        "verificationStatus": "verified_high_impact",
+        "excerpts": [
+          {
+            "reviewId": "HR-q1EA",
+            "reviewerLabel": "OpenReview - Reviewer q1EA",
+            "text": "The method's generality appears limited. The method's generality appears limited. The key motivation (low-energy components are crucial for robustness) is derived only from the large-scale ImageNet benchmark (Figure 3b) and is explicitly shown to be absent in the small-scale 20-task benchmark. This suggests MonoSoup may only be effective for fine-tuning on large-scale datasets. This contradiction also weakens the gen…"
+          }
+        ],
+        "explanation": "Raised by OpenReview - Reviewer q1EA. The paper itself contrasts ImageNet truncation with the 20-task setting. That domain dependence is supported and material to the generality claim."
+      },
+      {
+        "id": "LR06",
+        "label": "The plug-and-play claim needs qualification because performance depends on choosing R, and the paper does not explain why a stable mid-range R transfers across architectures and datasets.",
+        "kind": "weakness",
+        "peerMindFindingIds": [],
+        "humanFindingIds": [
+          "HR-gzvH-P01",
+          "HR-gzvH-P03"
+        ],
+        "relation": "human_only",
+        "sourceIds": [
+          "MS1-S12",
+          "MS1-S17",
+          "MS1-S18"
+        ],
+        "verificationStatus": "verified_moderate_impact",
+        "excerpts": [
+          {
+            "reviewId": "HR-gzvH",
+            "reviewerLabel": "OpenReview - Reviewer gzvH",
+            "text": "“Plug-and-play” claim needs qualification. “Plug-and-play” claim needs qualification. The method’s practicality is somewhat overstated because performance depends on choosing (R) well. Without a label-free selection rule, users may not reliably reproduce the reported gains."
+          },
+          {
+            "reviewId": "HR-gzvH",
+            "reviewerLabel": "OpenReview - Reviewer gzvH",
+            "text": "Architecture- and dataset-dependence of (R). Architecture- and dataset-dependence of (R). Intuitively, the optimal (R) should vary with model family and pretraining corpus, yet the paper suggests a fairly stable mid-range (R) for ViTs across datasets without explaining why."
+          }
+        ],
+        "explanation": "Raised by OpenReview - Reviewer gzvH. R is presented as the only hyperparameter and as potentially architecture-dependent, which undercuts an unqualified plug-and-play claim. Verified at moderate impact."
+      },
+      {
+        "id": "LR07",
+        "label": "Most reported results use Transformer backbones, so transfer of R and the mixing rule to broader non-Transformer families remains thinly supported.",
+        "kind": "weakness",
+        "peerMindFindingIds": [],
+        "humanFindingIds": [
+          "HR-gzvH-P02"
+        ],
+        "relation": "human_only",
+        "sourceIds": [
+          "MS1-S18",
+          "MS1-S24",
+          "MS1-S25"
+        ],
+        "verificationStatus": "partially_supported",
+        "excerpts": [
+          {
+            "reviewId": "HR-gzvH",
+            "reviewerLabel": "OpenReview - Reviewer gzvH",
+            "text": "Limited architecture diversity. Limited architecture diversity. Most results are on Transformer backbones (CLIP ViTs, a small LLM). It remains unclear whether the recommended (R) range and mixing rule transfer to non-Transformer models (e.g., ConvNeXt, ResNet, MoE)."
+          }
+        ],
+        "explanation": "Raised by OpenReview - Reviewer gzvH. The revised snapshot includes ConvNeXt, so categorical absence is false, but coverage is still narrow. Same verdict pattern as other architecture-coverage checks: partially supported."
+      }
+    ],
+    "questions": [
+      {
+        "id": "LQ-F01",
+        "label": "The single-checkpoint setting is practically useful, but the paper does not establish how much of the algorithmic contribution goes beyond existing SVD-based editing and scaling methods.",
+        "kind": "question",
+        "peerMindFindingIds": [
+          "F01"
+        ],
+        "humanFindingIds": [
+          "HR-mj9q-P07"
+        ],
+        "relation": "shared",
+        "sourceIds": [
+          "MS1-S03",
+          "MS1-S04",
+          "MS1-S08",
+          "MS1-S11"
+        ],
+        "verificationStatus": "partially_supported",
+        "excerpts": [
+          {
+            "reviewId": "HR-mj9q",
+            "reviewerLabel": "OpenReview - Reviewer mj9q",
+            "text": "Considering prior fine-tuning mechanisms such as Spectral Adapter (Zhang & Pilanci, 2024) and other SVD-based spectral m Considering prior fine-tuning mechanisms such as Spectral Adapter (Zhang & Pilanci, 2024) and other SVD-based spectral methods that already decompose pretrained weights to modulate singular directions, what specific conceptual or methodological advance distinguishes MonoSoup from this existing line…"
+          }
+        ],
+        "explanation": "This question restates PeerMind finding F01. Raised by OpenReview - Reviewer mj9q."
+      },
+      {
+        "id": "LQ-F05",
+        "label": "The manuscript motivates MonoSoup through large-model checkpoint cost but provides no accuracy, runtime, peak-memory, or storage profile at the 2–7B+ scale where the claimed advantage is most consequential.",
+        "kind": "question",
+        "peerMindFindingIds": [
+          "F05"
+        ],
+        "humanFindingIds": [
+          "BR-chatgpt-v1-P16",
+          "BR-chatgpt-v1-P17"
+        ],
+        "relation": "shared",
+        "sourceIds": [
+          "MS1-S01",
+          "MS1-S03",
+          "MS1-S14",
+          "MS1-S18"
+        ],
+        "verificationStatus": "verified_high_impact",
+        "excerpts": [
+          {
+            "reviewId": "BR-chatgpt-v1",
+            "reviewerLabel": "ChatGPT",
+            "text": "Larger LMs: Does MonoSoup remain computationally feasible and effective on at least a several-billion-parameter model? Larger LMs: Does MonoSoup remain computationally feasible and effective on at least a several-billion-parameter model?"
+          },
+          {
+            "reviewId": "BR-chatgpt-v1",
+            "reviewerLabel": "ChatGPT",
+            "text": "SVD cost: What is the wall-clock and peak-memory cost of applying MonoSoup to CLIP ViT-L/14 and Qwen3-0.6B? SVD cost: What is the wall-clock and peak-memory cost of applying MonoSoup to CLIP ViT-L/14 and Qwen3-0.6B?"
+          }
+        ],
+        "explanation": "This question restates PeerMind finding F05. Raised by ChatGPT."
+      },
+      {
+        "id": "LQ-F06",
+        "label": "Figure 2 reports 2,409 pairs from 70 checkpoints, but 70 choose 2 equals 2,415 and no six-pair exclusion is disclosed.",
+        "kind": "question",
+        "peerMindFindingIds": [
+          "F06"
+        ],
+        "humanFindingIds": [
+          "HR-q1EA-P07"
+        ],
+        "relation": "shared",
+        "sourceIds": [
+          "MS1-S06"
+        ],
+        "verificationStatus": "severity_downgraded",
+        "excerpts": [
+          {
+            "reviewId": "HR-q1EA",
+            "reviewerLabel": "OpenReview - Reviewer q1EA",
+            "text": "In Figure 2, the authors state they analyze 2,409 pairwise combinations. In Figure 2, the authors state they analyze 2,409 pairwise combinations. However, (choosing 2 pairs from 70 models) should result in 2,415 combinations. Could the authors clarify this small discrepancy?"
+          }
+        ],
+        "explanation": "This question restates PeerMind finding F06. Raised by OpenReview - Reviewer q1EA."
+      },
+      {
+        "id": "LQ-F07",
+        "label": "The strongest-checkpoint improvements are modest and are reported without variability estimates, making statistical reliability difficult to assess even though weak checkpoints improve substantially.",
+        "kind": "question",
+        "peerMindFindingIds": [
+          "F07"
+        ],
+        "humanFindingIds": [
+          "BR-chatgpt-v1-P14",
+          "BR-chatgpt-v1-P15"
+        ],
+        "relation": "shared",
+        "sourceIds": [
+          "MS1-S13",
+          "MS1-S20",
+          "MS1-S26"
+        ],
+        "verificationStatus": "verified_moderate_impact",
+        "excerpts": [
+          {
+            "reviewId": "BR-chatgpt-v1",
+            "reviewerLabel": "ChatGPT",
+            "text": "Full 70-model statistics: Please report aggregate improvement and degradation statistics rather than only the four extreme checkpoints. Statistical reliability for Qwen: How many fine-tuning/evaluation seeds were used?"
+          },
+          {
+            "reviewId": "BR-chatgpt-v1",
+            "reviewerLabel": "ChatGPT",
+            "text": "Are differences of approximately 0.5–1 point statistically meaningful? Are differences of approximately 0.5–1 point statistically meaningful?"
+          }
+        ],
+        "explanation": "This question restates PeerMind finding F07. Raised by ChatGPT."
+      },
+      {
+        "id": "LQ-F08",
+        "label": "The quantity named cosine alpha is a normalized residual-energy magnitude, not a cosine alignment between the low-energy update and pretrained weights; describing it as alignment or a pretrained-preservation signal overstates what its definition establishes.",
+        "kind": "question",
+        "peerMindFindingIds": [
+          "F08"
+        ],
+        "humanFindingIds": [
+          "BR-chatgpt-v1-P10",
+          "BR-chatgpt-v1-P11"
+        ],
+        "relation": "shared",
+        "sourceIds": [
+          "MS1-S12",
+          "MS1-S23",
+          "MS1-S28"
+        ],
+        "verificationStatus": "verified_high_impact",
+        "excerpts": [
+          {
+            "reviewId": "BR-chatgpt-v1",
+            "reviewerLabel": "ChatGPT",
+            "text": "I would ask the authors to address the following in rebuttal: Why is \\(\\|W_{\\mathrm{Low}}\\|/\\|W\\|\\) called cosine alignment?"
+          },
+          {
+            "reviewId": "BR-chatgpt-v1",
+            "reviewerLabel": "ChatGPT",
+            "text": "What two objects are geometrically being aligned? What two objects are geometrically being aligned?"
+          }
+        ],
+        "explanation": "This question restates PeerMind finding F08. Raised by ChatGPT."
+      },
+      {
+        "id": "LQ-F10",
+        "label": "Forcing lambda High plus lambda Low to equal one scales both spectral components below their fine-tuned coefficients of one, so the reported gains may partly arise from layer-wise shrinkage toward the pretrained model rather than spectral separation itself.",
+        "kind": "question",
+        "peerMindFindingIds": [
+          "F10"
+        ],
+        "humanFindingIds": [
+          "BR-chatgpt-v1-P12",
+          "BR-chatgpt-v1-P13"
+        ],
+        "relation": "shared",
+        "sourceIds": [
+          "MS1-S08",
+          "MS1-S11",
+          "MS1-S16",
+          "MS1-S29"
+        ],
+        "verificationStatus": "verified_high_impact",
+        "excerpts": [
+          {
+            "reviewId": "BR-chatgpt-v1",
+            "reviewerLabel": "ChatGPT",
+            "text": "Why should \\(\\lambda_{\\mathrm{High}}+\\lambda_{\\mathrm{Low}}=1\\)? Why should \\(\\lambda_{\\mathrm{High}}+\\lambda_{\\mathrm{Low}}=1\\)?"
+          },
+          {
+            "reviewId": "BR-chatgpt-v1",
+            "reviewerLabel": "ChatGPT",
+            "text": "Please provide either a theoretical motivation or an ablation allowing the two coefficients to vary independently. Shrinkage baseline: Can the authors compare MonoSoup against a layer-wise scalar shrinkage baseline that matches MonoSoup's resulting \\(\\|\\Delta W_\\ell\\|_F\\) but does not use spectral decomposition?"
+          }
+        ],
+        "explanation": "This question restates PeerMind finding F10. Raised by ChatGPT."
+      },
+      {
+        "id": "LQ-F12",
+        "label": "The statement that GSM Plus and GSM8K Platinum each improve by +9.2 points is not supported by the Table 2 fine-tuned-to-MonoSoup differences and lacks a clearly stated alternative reference baseline.",
+        "kind": "question",
+        "peerMindFindingIds": [
+          "F12"
+        ],
+        "humanFindingIds": [
+          "BR-chatgpt-v1-P18"
+        ],
+        "relation": "shared",
+        "sourceIds": [
+          "MS1-S14",
+          "MS1-S27"
+        ],
+        "verificationStatus": "verified_moderate_impact",
+        "excerpts": [
+          {
+            "reviewId": "BR-chatgpt-v1",
+            "reviewerLabel": "ChatGPT",
+            "text": "Clarify the “+9.2 points” language result, which appears inconsistent with Table 2. Clarify the “+9.2 points” language result, which appears inconsistent with Table 2."
+          }
+        ],
+        "explanation": "This question restates PeerMind finding F12. Raised by ChatGPT."
+      },
+      {
+        "id": "LQ01",
+        "label": "The vision evaluation is limited to natural ImageNet shifts; stronger distributional or adversarial robustness benchmarks are not reported.",
+        "kind": "question",
+        "peerMindFindingIds": [],
+        "humanFindingIds": [
+          "HR-mj9q-P04"
+        ],
+        "relation": "human_only",
+        "sourceIds": [
+          "MS1-S13"
+        ],
+        "verificationStatus": "open_question",
+        "excerpts": [
+          {
+            "reviewId": "HR-mj9q",
+            "reviewerLabel": "OpenReview - Reviewer mj9q",
+            "text": "Beyond natural ImageNet shifts, could MonoSoup be evaluated on stronger distributional or adversarial robustness benchma Beyond natural ImageNet shifts, could MonoSoup be evaluated on stronger distributional or adversarial robustness benchmarks to validate its claimed generalization benefits?"
+          }
+        ],
+        "explanation": "Raised by OpenReview - Reviewer mj9q. This is a request for additional protocols, not a contradiction in the reported ImageNet-shift numbers. Marked as an open question under the same status model."
+      },
+      {
+        "id": "LQ02",
+        "label": "Calling the method a soup overstates a single-checkpoint spectral reweighting as ensembling; spectral anisotropic rescaling is the more accurate description.",
+        "kind": "question",
+        "peerMindFindingIds": [],
+        "humanFindingIds": [
+          "HR-mj9q-P05",
+          "HR-mj9q-P06"
+        ],
+        "relation": "human_only",
+        "sourceIds": [
+          "MS1-S03",
+          "MS1-S08"
+        ],
+        "verificationStatus": "severity_downgraded",
+        "excerpts": [
+          {
+            "reviewId": "HR-mj9q",
+            "reviewerLabel": "OpenReview - Reviewer mj9q",
+            "text": "Since MonoSoup performs spectral reweighting rather than true model ensembling, what geometric evidence supports describing it as a “soup”? Since MonoSoup performs spectral reweighting rather than true model ensembling, what geometric evidence supports describing it as a “soup”?"
+          },
+          {
+            "reviewId": "HR-mj9q",
+            "reviewerLabel": "OpenReview - Reviewer mj9q",
+            "text": "Would framing it as spectral anisotropic re-scaling be more accurate? Would framing it as spectral anisotropic re-scaling be more accurate?"
+          }
+        ],
+        "explanation": "Raised by OpenReview - Reviewer mj9q. MonoSoup edits one update; it does not average multiple checkpoints. The naming mismatch is true but does not change the algorithm, so severity is downgraded."
+      },
+      {
+        "id": "LQ03",
+        "label": "The claim that practical storage of only one fine-tuned checkpoint necessitates MonoSoup is unconvincing; an alternative motivation would be stronger.",
+        "kind": "question",
+        "peerMindFindingIds": [],
+        "humanFindingIds": [
+          "HR-YMQp-P02"
+        ],
+        "relation": "human_only",
+        "sourceIds": [
+          "MS1-S01",
+          "MS1-S03"
+        ],
+        "verificationStatus": "partially_supported",
+        "excerpts": [
+          {
+            "reviewId": "HR-YMQp",
+            "reviewerLabel": "OpenReview - Reviewer YMQp",
+            "text": "As noted in the weaknesses above, the reviewer encourages the authors to consider an alternative motivation for MonoSoup As noted in the weaknesses above, the reviewer encourages the authors to consider an alternative motivation for MonoSoup, rather than relying on the assumption that most models in practice need to be stored as single checkpoints."
+          }
+        ],
+        "explanation": "Raised by OpenReview - Reviewer YMQp. Avoiding a multi-checkpoint soup is a real cost argument, but “therefore only one checkpoint is stored and MonoSoup is necessary” is not established. Partially supported."
+      },
+      {
+        "id": "LQ04",
+        "label": "The claim that high same-task alignment helps merging sits in tension with multi-task work that prefers orthogonality, and it is unclear whether the principle is same-task only.",
+        "kind": "question",
+        "peerMindFindingIds": [],
+        "humanFindingIds": [
+          "HR-q1EA-P05",
+          "HR-q1EA-P06"
+        ],
+        "relation": "human_only",
+        "sourceIds": [
+          "MS1-S05",
+          "MS1-S07"
+        ],
+        "verificationStatus": "open_question",
+        "excerpts": [
+          {
+            "reviewId": "HR-q1EA",
+            "reviewerLabel": "OpenReview - Reviewer q1EA",
+            "text": "The paper argues that high task vector alignment is beneficial for merging models performing the same task. The paper argues that high task vector alignment is beneficial for merging models performing the same task. This contrasts with principles in related fields like multi-task learning, where orthogonality (low similarity) is often preferred to prevent task interference[1,2]. Could the authors clarify how to recon…"
+          },
+          {
+            "reviewId": "HR-q1EA",
+            "reviewerLabel": "OpenReview - Reviewer q1EA",
+            "text": "Is the principle that \"high alignment is beneficial\" strictly limited to the same-task merging scenario? Is the principle that \"high alignment is beneficial\" strictly limited to the same-task merging scenario?"
+          }
+        ],
+        "explanation": "Raised by OpenReview - Reviewer q1EA. Section 3 reports an empirical same-task merging correlation. Reconciliation with multi-task orthogonality is not answered in the manuscript, so the status is an open question."
+      },
+      {
+        "id": "LQ05",
+        "label": "The M-x checkpoint identifiers (M-14, M-31, and similar) are not defined clearly enough to tell whether they are specific fine-tuning configurations.",
+        "kind": "question",
+        "peerMindFindingIds": [],
+        "humanFindingIds": [
+          "HR-Yqvj-P04",
+          "HR-Yqvj-P05"
+        ],
+        "relation": "human_only",
+        "sourceIds": [
+          "MS1-S13",
+          "MS1-S14"
+        ],
+        "verificationStatus": "open_question",
+        "excerpts": [
+          {
+            "reviewId": "HR-Yqvj",
+            "reviewerLabel": "OpenReview - Reviewer Yqvj",
+            "text": "For the models labeled M-x (e.g., M-14, M-31, etc.), could the authors clarify what these identifiers refer to? For the models labeled M-x (e.g., M-14, M-31, etc.), could the authors clarify what these identifiers refer to?"
+          },
+          {
+            "reviewId": "HR-Yqvj",
+            "reviewerLabel": "OpenReview - Reviewer Yqvj",
+            "text": "Do they correspond to specific fine-tuning configurations ? Do they correspond to specific fine-tuning configurations ?"
+          }
+        ],
+        "explanation": "Raised by OpenReview - Reviewer Yqvj. Table captions use M-x labels without a reproduced key in the extracted sources. Treated as an open clarification question, not a refuted numerical claim."
       }
     ],
     "summary": {
-      "sharedCount": 11,
-      "humanOnlyCount": 4,
-      "peerMindOnlyCount": 1,
+      "sharedCount": 9,
+      "humanOnlyCount": 7,
+      "peerMindOnlyCount": 2,
       "disagreementCount": 1,
-      "refutedCount": 1
+      "refutedCount": 1,
+      "questionCount": 12,
+      "questionMappedCount": 7,
+      "questionOpenCount": 5
+    },
+    "agentSummary": {
+      "agentId": "AG-COMPARE",
+      "agentLabel": "Comparison agent",
+      "headline": "ChatGPT vs OpenReview humans vs PeerMind",
+      "verdict": "PeerMind is the more reliable of the three because it verifies claims. ChatGPT raised 9 locked findings but has 1 incorrect and 1 too-broad weakness. OpenReview humans raised 4 locked findings as weaknesses and missed 8. PeerMind covers all 12 locked findings and refutes the false ChatGPT absence claim.",
+      "parties": [
+        {
+          "id": "chatgpt",
+          "label": "ChatGPT",
+          "raisedCount": 9,
+          "missedCount": 3,
+          "incorrectCount": 1,
+          "tooBroadCount": 1,
+          "note": "Generated review. One locked finding is incorrect; one weakness is too broad."
+        },
+        {
+          "id": "openreview",
+          "label": "OpenReview humans",
+          "raisedCount": 4,
+          "missedCount": 8,
+          "incorrectCount": 0,
+          "tooBroadCount": 0,
+          "note": "Official reviewers hit 4 locked findings as weaknesses and left 8 to PeerMind or ChatGPT."
+        },
+        {
+          "id": "peermind",
+          "label": "PeerMind",
+          "raisedCount": 12,
+          "missedCount": 2,
+          "incorrectCount": 0,
+          "tooBroadCount": 0,
+          "note": "Verified 9 shared weaknesses, refuted 1, and added 2 checks the other reviews missed as weaknesses."
+        }
+      ],
+      "callouts": [
+        {
+          "id": "incorrect-chatgpt-architecture",
+          "tag": "incorrect",
+          "reviewerLabel": "ChatGPT",
+          "title": "ChatGPT is incorrect on architecture coverage",
+          "detail": "ChatGPT says the manuscript has no ConvNeXt or other non-Transformer result. PeerMind F03 audits the appendix and refutes that claim. OpenReview humans did not make this false absence claim.",
+          "themeId": "LT03"
+        },
+        {
+          "id": "broad-chatgpt-language",
+          "tag": "too_broad",
+          "reviewerLabel": "ChatGPT",
+          "title": "ChatGPT’s language weakness is too broad",
+          "detail": "ChatGPT packs scale, modest deltas, missing seeds, and the +9.2 table mismatch into one weakness. PeerMind splits those into F05, F07, and F12. OpenReview humans raised the modest-gain / variability part (F07) without the table-arithmetic error.",
+          "themeId": "LT12"
+        },
+        {
+          "id": "shared-openreview-novelty",
+          "tag": "shared",
+          "reviewerLabel": "OpenReview humans",
+          "title": "OpenReview humans caught the SVD-novelty gap",
+          "detail": "mj9q raised limited novelty vs SVD-based editors. PeerMind keeps that as F01 (partially supported). ChatGPT did not raise it as a weakness.",
+          "themeId": "LT01"
+        },
+        {
+          "id": "missed-paircount",
+          "tag": "missed",
+          "reviewerLabel": "ChatGPT · OpenReview",
+          "title": "Humans asked the pair-count as a question; ChatGPT missed it",
+          "detail": "q1EA asked about 2,409 vs 2,415 in Questions. ChatGPT never raised it. PeerMind F06 verifies the combinatorics and downgrades severity.",
+          "themeId": "LT06"
+        },
+        {
+          "id": "missed-ood-protocol",
+          "tag": "missed",
+          "reviewerLabel": "ChatGPT · OpenReview",
+          "title": "Both independent reviews missed the language OOD protocol",
+          "detail": "ChatGPT and OpenReview discuss language results in general. Neither isolates that harder tasks are labeled OOD without a controlled shift. That is PeerMind F04.",
+          "themeId": "LT04"
+        },
+        {
+          "id": "openreview-figure-3b",
+          "tag": "shared",
+          "reviewerLabel": "OpenReview humans",
+          "title": "OpenReview humans found a Figure 3b tension PeerMind did not lock",
+          "detail": "q1EA argues Figure 3b undercuts the truncation-harm motivation. PeerMind verified that reviewer-only claim as high impact. This is a human-reviewer contribution, not a ChatGPT find.",
+          "themeId": "LR04"
+        },
+        {
+          "id": "peermind-verified-core",
+          "tag": "shared",
+          "reviewerLabel": "PeerMind",
+          "title": "PeerMind verifies the overlapping core instead of counting bullets",
+          "detail": "Across ChatGPT and OpenReview, 9 weaknesses match a locked finding and were verified. PeerMind also keeps 1 ChatGPT-only and 6 OpenReview-only leftovers under the same status rules.",
+          "themeId": "LT01"
+        }
+      ]
     }
   }
 }

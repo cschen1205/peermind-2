@@ -4,9 +4,11 @@ export type AskContextScope =
   | 'source'
   | 'paper_graph_node'
   | 'finding'
+  | 'verification'
   | 'evidence_ledger'
+  | 'impact'
   | 'counterfactual_test'
-  | 'report'
+  | 'synthesis'
   | 'comparison'
 
 export interface AskRequest {
@@ -19,12 +21,7 @@ export interface AskResponse {
   answer: string
   sourceIds: string[]
   actions?: Array<{
-    type:
-      | 'open_source'
-      | 'focus_graph'
-      | 'open_finding'
-      | 'open_investigation'
-      | 'run_check'
+    type: 'open_source' | 'focus_graph' | 'open_finding' | 'open_verification' | 'run_check'
     label: string
     targetId?: string
   }>

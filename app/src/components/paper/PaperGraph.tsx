@@ -46,14 +46,8 @@ function prefersReducedMotion(): boolean {
 
 function nodeKind(datum: { data?: Record<string, unknown> }): PaperNode['type'] {
   const kind = datum.data?.kind
-  if (
-    kind === 'method' ||
-    kind === 'claim' ||
-    kind === 'evidence' ||
-    kind === 'gap' ||
-    kind === 'question'
-  ) {
-    return kind
+  if (typeof kind === 'string' && kind in NODE_TYPE_LABELS) {
+    return kind as PaperNode['type']
   }
   return 'claim'
 }

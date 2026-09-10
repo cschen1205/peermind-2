@@ -297,10 +297,168 @@
   line-height: 1.45;
 }
 
+.type-quote-sm {
+  font-family: var(--font-serif);
+  font-size: 18px;
+  font-weight: 400;
+  line-height: 1.5;
+}
+
 .type-paper {
   font-family: var(--font-serif);
   font-size: 15px;
   line-height: 1.75;
+}
+
+.pm-markdown {
+  color: var(--pm-ink);
+  font-family: var(--font-serif);
+  font-size: 15px;
+  line-height: 1.75;
+  overflow-wrap: anywhere;
+}
+
+.pm-markdown > :first-child {
+  margin-top: 0;
+}
+
+.pm-markdown > :last-child {
+  margin-bottom: 0;
+}
+
+.pm-markdown h1,
+.pm-markdown h2,
+.pm-markdown h3,
+.pm-markdown h4,
+.pm-markdown h5,
+.pm-markdown h6 {
+  color: var(--pm-ink);
+  font-family: inherit;
+  font-weight: 650;
+  letter-spacing: -0.02em;
+  line-height: 1.3;
+  margin: 1.35em 0 0.45em;
+}
+
+.pm-markdown h1 {
+  font-size: 1.45em;
+}
+
+.pm-markdown h2 {
+  font-size: 1.28em;
+}
+
+.pm-markdown h3 {
+  font-size: 1.12em;
+}
+
+.pm-markdown h4,
+.pm-markdown h5,
+.pm-markdown h6 {
+  font-size: 1em;
+}
+
+.pm-markdown p,
+.pm-markdown ul,
+.pm-markdown ol,
+.pm-markdown blockquote,
+.pm-markdown pre,
+.pm-markdown table,
+.pm-markdown .katex-display {
+  margin: 0 0 0.85em;
+}
+
+.pm-markdown ul,
+.pm-markdown ol {
+  padding-left: 1.35em;
+}
+
+.pm-markdown ul {
+  list-style: disc;
+}
+
+.pm-markdown ol {
+  list-style: decimal;
+}
+
+.pm-markdown li + li {
+  margin-top: 0.28em;
+}
+
+.pm-markdown li > ul,
+.pm-markdown li > ol {
+  margin: 0.28em 0 0;
+}
+
+.pm-markdown strong {
+  font-weight: 650;
+}
+
+.pm-markdown a {
+  color: var(--pm-accent);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+.pm-markdown blockquote {
+  border-left: 3px solid var(--pm-accent-line);
+  color: var(--pm-muted);
+  padding-left: 0.9em;
+}
+
+.pm-markdown hr {
+  border: 0;
+  border-top: 1px solid var(--pm-line);
+  margin: 1.2em 0;
+}
+
+.pm-markdown code {
+  border-radius: 4px;
+  font-family: var(--font-mono);
+  font-size: 0.86em;
+}
+
+.pm-markdown :not(pre) > code {
+  background: var(--pm-bg-subtle);
+  padding: 0.1em 0.35em;
+}
+
+.pm-markdown pre {
+  background: var(--pm-bg-subtle);
+  border: 1px solid var(--pm-line);
+  border-radius: 8px;
+  overflow-x: auto;
+  padding: 0.85em 1em;
+}
+
+.pm-markdown pre code {
+  background: none;
+  padding: 0;
+}
+
+.pm-markdown table {
+  border-collapse: collapse;
+  display: block;
+  overflow-x: auto;
+  width: 100%;
+}
+
+.pm-markdown th,
+.pm-markdown td {
+  border: 1px solid var(--pm-line);
+  padding: 0.4em 0.65em;
+  text-align: left;
+}
+
+.pm-markdown th {
+  background: var(--pm-bg-subtle);
+  font-weight: 650;
+}
+
+.pm-markdown .katex-display {
+  overflow-x: auto;
+  overflow-y: hidden;
+  padding: 0.15em 0;
 }
 
 .type-trace {

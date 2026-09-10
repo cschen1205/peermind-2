@@ -1,8 +1,8 @@
 import { useEffect, useMemo } from 'react'
 import { reducePlayback, type PlaybackView } from '@/demo/playbackEngine'
 import { useDemoStore, type PlaybackStatus } from '@/store/demoStore'
-import type { FindingValidity } from '@/types/finding'
-import type { PlaybackEvent, WorkflowNodeData } from '@/types/investigation'
+import type { EvidenceVerdict } from '@/types/finding'
+import type { PlaybackEvent, WorkflowNodeData } from '@/types/verification'
 
 const STEP_MS = 600
 
@@ -21,7 +21,7 @@ export function usePlayback({
   events: PlaybackEvent[]
   runId: string
   nodes: Pick<WorkflowNodeData, 'id' | 'kind'>[]
-  initialVerdict: FindingValidity
+  initialVerdict: EvidenceVerdict
   fallbackSourceIds?: string[]
 }): {
   view: PlaybackView

@@ -11,6 +11,7 @@ export function AskPeerMindButton({ className }: { className?: string }) {
   const selectedSourceIds = useDemoStore((s) => s.selectedSourceIds)
   const selectedFindingId = useDemoStore((s) => s.selectedFindingId)
   const selectedComparisonThemeId = useDemoStore((s) => s.selectedComparisonThemeId)
+  const verifyPanel = useDemoStore((s) => s.verifyPanel)
 
   return (
     <Button
@@ -24,6 +25,7 @@ export function AskPeerMindButton({ className }: { className?: string }) {
           selectedSourceIds,
           selectedFindingId,
           selectedComparisonThemeId,
+          verifyPanel,
         })
         openAsk(scope, contextIds)
       }}

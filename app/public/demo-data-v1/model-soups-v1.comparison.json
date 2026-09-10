@@ -1,0 +1,554 @@
+{
+  "id": "model-soups-v1-human-comparison",
+  "inputs": {
+    "humanReviews": [
+      {
+        "id": "HR-mj9q",
+        "label": "Reviewer mj9q",
+        "reviewText": "The paper is practical and conceptually elegant, but the novelty beyond SVD-based methods is limited, the coefficient lacks theoretical grounding, and the soup terminology may overstate the relation to ensembling.",
+        "sourceType": "openreview",
+        "ratings": [
+          {
+            "label": "Soundness",
+            "score": "2",
+            "scale": "4",
+            "scaleLabel": "Fair"
+          },
+          {
+            "label": "Presentation",
+            "score": "2",
+            "scale": "4",
+            "scaleLabel": "Fair"
+          },
+          {
+            "label": "Contribution",
+            "score": "2",
+            "scale": "4",
+            "scaleLabel": "Fair"
+          },
+          {
+            "label": "Rating",
+            "score": "4",
+            "scale": "10",
+            "scaleLabel": "Marginally below the acceptance threshold"
+          },
+          {
+            "label": "Confidence",
+            "score": "4",
+            "scale": "5",
+            "scaleLabel": "High"
+          }
+        ]
+      },
+      {
+        "id": "HR-YMQp",
+        "label": "Reviewer YMQp",
+        "reviewText": "The method is lightweight and empirically strong, but the single-checkpoint storage motivation is unconvincing and evidence on another modality such as audio would strengthen applicability.",
+        "sourceType": "openreview",
+        "ratings": [
+          {
+            "label": "Soundness",
+            "score": "3",
+            "scale": "4",
+            "scaleLabel": "Good"
+          },
+          {
+            "label": "Presentation",
+            "score": "3",
+            "scale": "4",
+            "scaleLabel": "Good"
+          },
+          {
+            "label": "Contribution",
+            "score": "3",
+            "scale": "4",
+            "scaleLabel": "Good"
+          },
+          {
+            "label": "Rating",
+            "score": "6",
+            "scale": "10",
+            "scaleLabel": "Marginally above the acceptance threshold"
+          },
+          {
+            "label": "Confidence",
+            "score": "3",
+            "scale": "5",
+            "scaleLabel": "Medium"
+          }
+        ]
+      },
+      {
+        "id": "HR-q1EA",
+        "label": "Reviewer q1EA",
+        "reviewText": "The coefficient interpretation is unclear, Figure 3 may conflict with the truncation narrative, gains over LiNeS are marginal without variability, generality may be regime-dependent, and Figure 2 has a pair-count discrepancy.",
+        "sourceType": "openreview",
+        "ratings": [
+          {
+            "label": "Soundness",
+            "score": "2",
+            "scale": "4",
+            "scaleLabel": "Fair"
+          },
+          {
+            "label": "Presentation",
+            "score": "3",
+            "scale": "4",
+            "scaleLabel": "Good"
+          },
+          {
+            "label": "Contribution",
+            "score": "2",
+            "scale": "4",
+            "scaleLabel": "Fair"
+          },
+          {
+            "label": "Rating",
+            "score": "4",
+            "scale": "10",
+            "scaleLabel": "Marginally below the acceptance threshold"
+          },
+          {
+            "label": "Confidence",
+            "score": "5",
+            "scale": "5",
+            "scaleLabel": "Very high"
+          }
+        ]
+      },
+      {
+        "id": "HR-gzvH",
+        "label": "Reviewer gzvH",
+        "reviewText": "The creative single-checkpoint reframing is strong, but plug-and-play practicality is qualified by selecting R, architecture diversity is limited, and a label-free selection rule is needed.",
+        "sourceType": "openreview",
+        "ratings": [
+          {
+            "label": "Soundness",
+            "score": "3",
+            "scale": "4",
+            "scaleLabel": "Good"
+          },
+          {
+            "label": "Presentation",
+            "score": "3",
+            "scale": "4",
+            "scaleLabel": "Good"
+          },
+          {
+            "label": "Contribution",
+            "score": "3",
+            "scale": "4",
+            "scaleLabel": "Good"
+          },
+          {
+            "label": "Rating",
+            "score": "6",
+            "scale": "10",
+            "scaleLabel": "Marginally above the acceptance threshold"
+          },
+          {
+            "label": "Confidence",
+            "score": "5",
+            "scale": "5",
+            "scaleLabel": "Very high"
+          }
+        ]
+      },
+      {
+        "id": "HR-Yqvj",
+        "label": "Reviewer Yqvj",
+        "reviewText": "The method is simple and well motivated, but gains on strong checkpoints are modest, variability is missing, and the per-layer impact of the coefficients needs deeper analysis.",
+        "sourceType": "openreview",
+        "ratings": [
+          {
+            "label": "Soundness",
+            "score": "3",
+            "scale": "4",
+            "scaleLabel": "Good"
+          },
+          {
+            "label": "Presentation",
+            "score": "3",
+            "scale": "4",
+            "scaleLabel": "Good"
+          },
+          {
+            "label": "Contribution",
+            "score": "3",
+            "scale": "4",
+            "scaleLabel": "Good"
+          },
+          {
+            "label": "Rating",
+            "score": "6",
+            "scale": "10",
+            "scaleLabel": "Marginally above the acceptance threshold"
+          },
+          {
+            "label": "Confidence",
+            "score": "4",
+            "scale": "5",
+            "scaleLabel": "High"
+          }
+        ]
+      }
+    ],
+    "baselineReview": {
+      "id": "BR-chatgpt-v1",
+      "label": "ChatGPT independent review",
+      "reviewText": "An independent long-form review emphasizing coefficient semantics, signal dependence, update shrinkage, the Section 3-to-4 bridge, language effect-size arithmetic, SVD cost, aggregate CLIP statistics, and presentation accuracy.",
+      "sourceType": "other",
+      "ratings": [
+        {
+          "label": "Soundness",
+          "score": "2",
+          "scale": "4",
+          "scaleLabel": "Fair"
+        },
+        {
+          "label": "Presentation",
+          "score": "2",
+          "scale": "4",
+          "scaleLabel": "Fair"
+        },
+        {
+          "label": "Contribution",
+          "score": "3",
+          "scale": "4",
+          "scaleLabel": "Good"
+        },
+        {
+          "label": "Rating",
+          "score": "4",
+          "scale": "10",
+          "scaleLabel": "Borderline Reject"
+        },
+        {
+          "label": "Confidence",
+          "score": "4",
+          "scale": "5",
+          "scaleLabel": "High"
+        }
+      ]
+    }
+  },
+  "result": {
+    "themes": [
+      {
+        "id": "CT01",
+        "label": "Contribution differentiation",
+        "peerMindFindingIds": [
+          "F01"
+        ],
+        "humanFindingIds": [
+          "HF01"
+        ],
+        "baselineFindingIds": [],
+        "relation": "shared",
+        "sourceIds": [
+          "MS1-S03",
+          "MS1-S04"
+        ],
+        "explanation": "Both identify a contribution-positioning question; PeerMind abstains from external novelty adjudication.",
+        "verificationStatus": "partially_supported"
+      },
+      {
+        "id": "CT02",
+        "label": "Weighting-rule theory",
+        "peerMindFindingIds": [
+          "F02"
+        ],
+        "humanFindingIds": [
+          "HF02",
+          "HF16"
+        ],
+        "baselineFindingIds": [
+          "BF03",
+          "BF06"
+        ],
+        "relation": "shared",
+        "sourceIds": [
+          "MS1-S11",
+          "MS1-S22",
+          "MS1-S23"
+        ],
+        "explanation": "All three reviews question the explanatory reach of the rule; PeerMind preserves its proven monotonicity and bounded sensitivity.",
+        "verificationStatus": "verified_high_impact"
+      },
+      {
+        "id": "CT03",
+        "label": "Architecture and label-free evidence across versions",
+        "peerMindFindingIds": [
+          "F03"
+        ],
+        "humanFindingIds": [
+          "HF12",
+          "HF13"
+        ],
+        "baselineFindingIds": [],
+        "relation": "disagreement",
+        "sourceIds": [
+          "MS1-S24",
+          "MS1-S25"
+        ],
+        "explanation": "The human concern was valid for the original submission snapshot. ConvNeXt and automatic-selection evidence added during rebuttal resolve the categorical absence only in the revised snapshot; documentation breadth remains limited.",
+        "verificationStatus": "refuted"
+      },
+      {
+        "id": "CT04",
+        "label": "Language OOD protocol",
+        "peerMindFindingIds": [
+          "F04"
+        ],
+        "humanFindingIds": [],
+        "baselineFindingIds": [],
+        "relation": "peermind_only",
+        "sourceIds": [
+          "MS1-S14",
+          "MS1-S15"
+        ],
+        "explanation": "PeerMind isolates the distribution-shift definition separately from numerical language claims.",
+        "verificationStatus": "verified_high_impact"
+      },
+      {
+        "id": "CT05",
+        "label": "Large-model scalability profile",
+        "peerMindFindingIds": [
+          "F05"
+        ],
+        "humanFindingIds": [],
+        "baselineFindingIds": [
+          "BF08"
+        ],
+        "relation": "shared",
+        "sourceIds": [
+          "MS1-S01",
+          "MS1-S18"
+        ],
+        "explanation": "PeerMind and ChatGPT request quality and resource measurements at realistic model scale; PeerMind explicitly preserves the logical one-checkpoint savings.",
+        "verificationStatus": "verified_high_impact"
+      },
+      {
+        "id": "CT06",
+        "label": "Figure 2 pair count",
+        "peerMindFindingIds": [
+          "F06"
+        ],
+        "humanFindingIds": [
+          "HF10"
+        ],
+        "relation": "shared",
+        "sourceIds": [
+          "MS1-S06"
+        ],
+        "explanation": "Both identify the exact six-pair discrepancy; deterministic arithmetic verifies it.",
+        "verificationStatus": "severity_downgraded"
+      },
+      {
+        "id": "CT07",
+        "label": "Effect size and uncertainty",
+        "peerMindFindingIds": [
+          "F07"
+        ],
+        "humanFindingIds": [
+          "HF08",
+          "HF14",
+          "HF15"
+        ],
+        "baselineFindingIds": [
+          "BF09"
+        ],
+        "relation": "shared",
+        "sourceIds": [
+          "MS1-S13",
+          "MS1-S20",
+          "MS1-S26"
+        ],
+        "explanation": "All three preserve large weak-checkpoint gains while requesting uncertainty and aggregate all-checkpoint statistics.",
+        "verificationStatus": "verified_moderate_impact"
+      },
+      {
+        "id": "CT08",
+        "label": "Soup terminology",
+        "peerMindFindingIds": [],
+        "humanFindingIds": [
+          "HF03"
+        ],
+        "relation": "human_only",
+        "sourceIds": [
+          "MS1-S01",
+          "MS1-S03"
+        ],
+        "explanation": "A presentation/positioning issue not selected for the seven-finding PeerMind run.",
+        "verificationStatus": "open_question"
+      },
+      {
+        "id": "CT09",
+        "label": "Storage-centered motivation",
+        "peerMindFindingIds": [],
+        "humanFindingIds": [
+          "HF04"
+        ],
+        "relation": "human_only",
+        "sourceIds": [
+          "MS1-S01",
+          "MS1-S03"
+        ],
+        "explanation": "A practical-premise judgment not independently checked.",
+        "verificationStatus": "open_question"
+      },
+      {
+        "id": "CT10",
+        "label": "Audio modality coverage",
+        "peerMindFindingIds": [],
+        "humanFindingIds": [
+          "HF05"
+        ],
+        "relation": "human_only",
+        "sourceIds": [
+          "MS1-S18"
+        ],
+        "explanation": "A useful extension rather than a demonstrated defect in the bounded vision/language evidence.",
+        "verificationStatus": "open_question"
+      },
+      {
+        "id": "CT11",
+        "label": "Truncation narrative",
+        "peerMindFindingIds": [],
+        "humanFindingIds": [
+          "HF07",
+          "HF09"
+        ],
+        "relation": "human_only",
+        "sourceIds": [
+          "MS1-S09",
+          "MS1-S21"
+        ],
+        "explanation": "A graph-reading and regime-generality issue outside the selected seven findings.",
+        "verificationStatus": "open_question"
+      },
+      {
+        "id": "CT12",
+        "label": "Notation and checkpoint documentation",
+        "peerMindFindingIds": [],
+        "humanFindingIds": [
+          "HF11",
+          "HF17"
+        ],
+        "baselineFindingIds": [
+          "BF10"
+        ],
+        "relation": "shared",
+        "sourceIds": [
+          "MS1-S05",
+          "MS1-S13"
+        ],
+        "explanation": "Human and ChatGPT reviews identify presentation problems outside the selected scientific investigations.",
+        "verificationStatus": "open_question"
+      },
+      {
+        "id": "CT13",
+        "label": "Residual energy mislabeled as alignment",
+        "peerMindFindingIds": [
+          "F08"
+        ],
+        "humanFindingIds": [
+          "HF06"
+        ],
+        "baselineFindingIds": [
+          "BF01"
+        ],
+        "relation": "shared",
+        "sourceIds": [
+          "MS1-S12",
+          "MS1-S23",
+          "MS1-S28"
+        ],
+        "explanation": "All three identify the conceptual ambiguity; PeerMind resolves the exact identity and limits the verdict without rejecting the empirical CKA observation.",
+        "verificationStatus": "verified_high_impact"
+      },
+      {
+        "id": "CT14",
+        "label": "Dependence among spectral signals",
+        "peerMindFindingIds": [
+          "F09"
+        ],
+        "humanFindingIds": [],
+        "baselineFindingIds": [
+          "BF02"
+        ],
+        "relation": "shared",
+        "sourceIds": [
+          "MS1-S10",
+          "MS1-S17",
+          "MS1-S28"
+        ],
+        "explanation": "PeerMind and ChatGPT identify the dependency; PeerMind avoids the stronger unsupported conclusion that the signals are completely redundant.",
+        "verificationStatus": "verified_high_impact"
+      },
+      {
+        "id": "CT15",
+        "label": "Layer-wise shrinkage alternative",
+        "peerMindFindingIds": [
+          "F10"
+        ],
+        "humanFindingIds": [],
+        "baselineFindingIds": [
+          "BF04"
+        ],
+        "relation": "shared",
+        "sourceIds": [
+          "MS1-S08",
+          "MS1-S16",
+          "MS1-S29"
+        ],
+        "explanation": "PeerMind converts ChatGPT's strong hypothesis into a causal contract with a norm-matched scalar baseline and an explicit stop rule.",
+        "verificationStatus": "verified_high_impact"
+      },
+      {
+        "id": "CT16",
+        "label": "Multi-model to single-model geometry bridge",
+        "peerMindFindingIds": [
+          "F11"
+        ],
+        "humanFindingIds": [],
+        "baselineFindingIds": [
+          "BF05"
+        ],
+        "relation": "shared",
+        "sourceIds": [
+          "MS1-S05",
+          "MS1-S07",
+          "MS1-S30"
+        ],
+        "explanation": "PeerMind and ChatGPT agree the quantities differ; PeerMind preserves the broader intuition and offers a wording-level falsifier or a substantive mapping.",
+        "verificationStatus": "verified_high_impact"
+      },
+      {
+        "id": "CT17",
+        "label": "Claimed +9.2 language gains",
+        "peerMindFindingIds": [
+          "F12"
+        ],
+        "humanFindingIds": [],
+        "baselineFindingIds": [
+          "BF07"
+        ],
+        "relation": "shared",
+        "sourceIds": [
+          "MS1-S14",
+          "MS1-S27"
+        ],
+        "explanation": "PeerMind turns the ChatGPT observation into a bounded table-to-text consistency check requiring exact calculation provenance.",
+        "verificationStatus": "verified_moderate_impact"
+      }
+    ],
+    "summary": {
+      "sharedCount": 11,
+      "humanOnlyCount": 4,
+      "peerMindOnlyCount": 1,
+      "disagreementCount": 1,
+      "refutedCount": 1
+    }
+  }
+}

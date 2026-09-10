@@ -1,4 +1,11 @@
-import type { FindingValidity } from './finding'
+import type { FindingStatus } from './finding'
+
+export interface ReviewScore {
+  label: string
+  score: string
+  scale: string
+  scaleLabel: string
+}
 
 export interface HumanReviewInput {
   id: string
@@ -6,6 +13,14 @@ export interface HumanReviewInput {
   reviewText: string
   sourceType: 'openreview' | 'manual' | 'other'
   sourceUrl?: string
+  fileName?: string
+  ratings?: ReviewScore[]
+}
+
+export interface ComparisonExcerpt {
+  reviewId: string
+  reviewerLabel: string
+  text: string
 }
 
 export interface ComparisonInputBundle {
@@ -15,16 +30,20 @@ export interface ComparisonInputBundle {
   baselineReview?: HumanReviewInput
 }
 
+export type ComparisonItemKind = 'weakness' | 'question'
+
 export interface ComparisonTheme {
   id: string
   label: string
+  kind?: ComparisonItemKind
   peerMindFindingIds: string[]
   humanFindingIds: string[]
   baselineFindingIds?: string[]
   relation: 'shared' | 'human_only' | 'peermind_only' | 'disagreement'
   sourceIds?: string[]
-  defenderStatus?: FindingValidity
+  verificationStatus?: FindingStatus
   explanation?: string
+  excerpts?: ComparisonExcerpt[]
 }
 
 export interface ComparisonSummary {
@@ -33,11 +52,48 @@ export interface ComparisonSummary {
   peerMindOnlyCount: number
   disagreementCount: number
   refutedCount?: number
+  questionCount?: number
+  questionMappedCount?: number
+  questionOpenCount?: number
+}
+
+export type ComparisonCalloutTag = 'incorrect' | 'too_broad' | 'missed' | 'shared'
+
+export type ComparisonPartyId = 'chatgpt' | 'openreview' | 'peermind'
+
+export interface ComparisonCallout {
+  id: string
+  tag: ComparisonCalloutTag
+  reviewerLabel: string
+  title: string
+  detail: string
+  themeId?: string
+}
+
+export interface ComparisonPartyScore {
+  id: ComparisonPartyId
+  label: string
+  raisedCount: number
+  missedCount: number
+  incorrectCount: number
+  tooBroadCount: number
+  note: string
+}
+
+export interface ComparisonAgentSummary {
+  agentId: string
+  agentLabel: string
+  headline: string
+  verdict: string
+  parties?: ComparisonPartyScore[]
+  callouts: ComparisonCallout[]
 }
 
 export interface ComparisonResult {
   themes: ComparisonTheme[]
+  questions?: ComparisonTheme[]
   summary: ComparisonSummary
+  agentSummary?: ComparisonAgentSummary
 }
 
 export interface ComparisonPreset {
