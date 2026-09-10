@@ -1,0 +1,4518 @@
+{
+  "schemaVersion": "1.0",
+  "demo": {
+    "id": "model-soups-v1",
+    "title": "MonoSoup evidence-based review",
+    "description": "Prepared PeerMind replay for a source-linked, bounded review of the supplied ICLR 2026 manuscript. Revised manuscript snapshot containing rebuttal-era CKA, ConvNeXt, and freevariance additions; original-review concerns must not be retroactively labeled false. This is a curated one-paper fixture, not a live model run. Author claims and reported results are not independently reproduced unless a deterministic check is shown. No external literature retrieval or code execution was performed. Human reviews are loaded separately and are not ground truth."
+  },
+  "paper": {
+    "id": "model-soups-need-only-one-ingredient-v1",
+    "title": "Model Soups Need Only One Ingredient",
+    "authors": [
+      "Anonymous authors"
+    ],
+    "venue": "Under review as a conference paper at ICLR 2026",
+    "year": 2025,
+    "abstract": "MonoSoup is presented as a data-free, post-hoc spectral reweighting method that seeks an ID–OOD balance from one fine-tuned checkpoint.",
+    "pdfAsset": "/papers/sample_paper_v1.pdf",
+    "previewMode": "pdf"
+  },
+  "sections": [
+    {
+      "id": "SEC-ABS",
+      "title": "Abstract",
+      "level": 1,
+      "startPage": 1,
+      "endPage": 1,
+      "sourceIds": [
+        "MS1-S01"
+      ]
+    },
+    {
+      "id": "SEC-1",
+      "title": "1 Introduction",
+      "level": 1,
+      "startPage": 1,
+      "endPage": 2,
+      "sourceIds": [
+        "MS1-S02",
+        "MS1-S03"
+      ]
+    },
+    {
+      "id": "SEC-2",
+      "title": "2 Preliminaries",
+      "level": 1,
+      "startPage": 2,
+      "endPage": 3,
+      "sourceIds": [
+        "MS1-S04"
+      ]
+    },
+    {
+      "id": "SEC-3",
+      "title": "3 The Role of Alignment in Model Merging",
+      "level": 1,
+      "startPage": 3,
+      "endPage": 4,
+      "sourceIds": [
+        "MS1-S05",
+        "MS1-S06",
+        "MS1-S07"
+      ]
+    },
+    {
+      "id": "SEC-4",
+      "title": "4 MonoSoup",
+      "level": 1,
+      "startPage": 4,
+      "endPage": 6,
+      "sourceIds": [
+        "MS1-S08",
+        "MS1-S09",
+        "MS1-S10",
+        "MS1-S11",
+        "MS1-S12"
+      ]
+    },
+    {
+      "id": "SEC-5",
+      "title": "5 Experiments",
+      "level": 1,
+      "startPage": 6,
+      "endPage": 9,
+      "sourceIds": [
+        "MS1-S13",
+        "MS1-S14",
+        "MS1-S15",
+        "MS1-S16",
+        "MS1-S17"
+      ]
+    },
+    {
+      "id": "SEC-6",
+      "title": "6 Limitations",
+      "level": 1,
+      "startPage": 9,
+      "endPage": 10,
+      "sourceIds": [
+        "MS1-S18"
+      ]
+    },
+    {
+      "id": "SEC-7",
+      "title": "7 Conclusion",
+      "level": 1,
+      "startPage": 10,
+      "endPage": 10,
+      "sourceIds": [
+        "MS1-S19"
+      ]
+    },
+    {
+      "id": "SEC-APP-A",
+      "title": "Appendix A–F: Extended experiments",
+      "level": 1,
+      "startPage": 15,
+      "endPage": 18,
+      "sourceIds": [
+        "MS1-S20",
+        "MS1-S21"
+      ]
+    },
+    {
+      "id": "SEC-APP-G",
+      "title": "Appendix G: Interpretability of Coefficients",
+      "level": 1,
+      "startPage": 19,
+      "endPage": 19,
+      "sourceIds": [
+        "MS1-S22"
+      ]
+    },
+    {
+      "id": "SEC-APP-H",
+      "title": "Appendix H: Centered Kernel Alignment Analysis",
+      "level": 1,
+      "startPage": 19,
+      "endPage": 20,
+      "sourceIds": [
+        "MS1-S23"
+      ]
+    },
+    {
+      "id": "SEC-APP-I",
+      "title": "Appendix I: Variance Threshold Ablation",
+      "level": 1,
+      "startPage": 20,
+      "endPage": 22,
+      "sourceIds": [
+        "MS1-S24"
+      ]
+    },
+    {
+      "id": "SEC-APP-J",
+      "title": "Appendix J: ConvNeXt",
+      "level": 1,
+      "startPage": 22,
+      "endPage": 22,
+      "sourceIds": [
+        "MS1-S25"
+      ]
+    },
+    {
+      "id": "SEC-APP-Q",
+      "title": "Appendix: All-checkpoint quiver plot",
+      "level": 1,
+      "startPage": 23,
+      "endPage": 23,
+      "sourceIds": [
+        "MS1-S26"
+      ]
+    }
+  ],
+  "sources": [
+    {
+      "id": "MS1-S01",
+      "type": "claim",
+      "label": "Abstract: single-checkpoint objective",
+      "sectionId": "SEC-ABS",
+      "page": 1,
+      "excerpt": "MonoSoup is described as a simple, data-free approach using only a single checkpoint to balance ID accuracy and OOD robustness."
+    },
+    {
+      "id": "MS1-S02",
+      "type": "paragraph",
+      "label": "Representation-collapse motivation",
+      "sectionId": "SEC-1",
+      "page": 1,
+      "excerpt": "The paper motivates the task through the loss of general-purpose knowledge and OOD performance during fine-tuning."
+    },
+    {
+      "id": "MS1-S03",
+      "type": "claim",
+      "label": "Claimed contributions",
+      "sectionId": "SEC-1",
+      "page": 2,
+      "excerpt": "The contributions claim a geometric view of merging, Similarity-Filtered Greedy Soup, MonoSoup, and validation on vision and language benchmarks."
+    },
+    {
+      "id": "MS1-S04",
+      "type": "paragraph",
+      "label": "Related single-model methods",
+      "sectionId": "SEC-2",
+      "page": 3,
+      "excerpt": "Wise-FT interpolates uniformly between pretrained and fine-tuned weights; LiNeS uses post-training layer scaling and labeled data to tune hyperparameters."
+    },
+    {
+      "id": "MS1-S05",
+      "type": "figure",
+      "label": "Figure 1: Similarity-Filtered Greedy Soup",
+      "sectionId": "SEC-3",
+      "page": 3,
+      "excerpt": "The alignment-filtered soup is reported as competitive with validation-based greedy soup and the strongest single checkpoint."
+    },
+    {
+      "id": "MS1-S06",
+      "type": "figure",
+      "label": "Figure 2: 2,409 pairwise combinations",
+      "sectionId": "SEC-3",
+      "page": 4,
+      "excerpt": "Figure 2 reports an alignment analysis on 2,409 pairwise combinations of 70 CLIP ViT-B/32 checkpoints."
+    },
+    {
+      "id": "MS1-S07",
+      "type": "paragraph",
+      "label": "Alignment interpretation",
+      "sectionId": "SEC-3",
+      "page": 4,
+      "excerpt": "The authors observe improvements for well-aligned task vectors and diminished benefits for weakly correlated updates."
+    },
+    {
+      "id": "MS1-S08",
+      "type": "equation",
+      "label": "Equations 2–3: SVD energy split",
+      "sectionId": "SEC-4",
+      "page": 4,
+      "excerpt": "Each layer update is decomposed into high- and low-energy components; k is the smallest rank retaining fraction R of squared singular-value energy."
+    },
+    {
+      "id": "MS1-S09",
+      "type": "figure",
+      "label": "Figure 3: truncation behavior",
+      "sectionId": "SEC-4",
+      "page": 5,
+      "excerpt": "Small-task performance saturates at low rank, while the ImageNet experiment is presented as showing that truncation can reduce both ID and OOD accuracy."
+    },
+    {
+      "id": "MS1-S10",
+      "type": "equation",
+      "label": "Equation 5: spectral decay",
+      "sectionId": "SEC-4",
+      "page": 5,
+      "excerpt": "Spectral decay rho is defined from the first discarded singular value relative to the leading singular value."
+    },
+    {
+      "id": "MS1-S11",
+      "type": "equation",
+      "label": "Equation 6: adaptive coefficients",
+      "sectionId": "SEC-4",
+      "page": 6,
+      "excerpt": "The low-energy coefficient is rho plus one minus rho times cosine alpha; the high-energy coefficient is one minus the low-energy coefficient."
+    },
+    {
+      "id": "MS1-S12",
+      "type": "claim",
+      "label": "Coefficient interpretation",
+      "sectionId": "SEC-4",
+      "page": 6,
+      "excerpt": "The manuscript interprets cosine alpha as the fraction of update energy in low-energy directions and uses R as its only hyperparameter."
+    },
+    {
+      "id": "MS1-S13",
+      "type": "table",
+      "label": "Table 1: CLIP results",
+      "sectionId": "SEC-5",
+      "page": 6,
+      "excerpt": "On the best-OOD checkpoint, average OOD rises from 50.67% to 51.60%; larger gains are reported for weak checkpoints."
+    },
+    {
+      "id": "MS1-S14",
+      "type": "table",
+      "label": "Table 2: Qwen3-0.6B results",
+      "sectionId": "SEC-5",
+      "page": 7,
+      "excerpt": "MonoSoup is compared on GSM8K, GSM Plus, GSM8KPlatinum, SciQ, and MMLU-Pro-Math using three fine-tuning variants."
+    },
+    {
+      "id": "MS1-S15",
+      "type": "paragraph",
+      "label": "Language ID/OOD protocol",
+      "sectionId": "SEC-5",
+      "page": 7,
+      "excerpt": "GSM8K and SciQ are treated as ID, while GSM Plus, GSM8KPlatinum, and MMLU-Pro-Math are treated as OOD or more challenging benchmarks."
+    },
+    {
+      "id": "MS1-S16",
+      "type": "figure",
+      "label": "Figure 4: Wise-FT complement",
+      "sectionId": "SEC-5",
+      "page": 8,
+      "excerpt": "MonoSoup plus Wise-FT is reported to produce a stronger ID–OOD Pareto frontier across five ImageNet shifts."
+    },
+    {
+      "id": "MS1-S17",
+      "type": "figure",
+      "label": "Figure 5: R sensitivity",
+      "sectionId": "SEC-5",
+      "page": 9,
+      "excerpt": "Performance is reported as stable across a range of R values, but the method still requires selecting the variance threshold."
+    },
+    {
+      "id": "MS1-S18",
+      "type": "paragraph",
+      "label": "Stated limitations",
+      "sectionId": "SEC-6",
+      "page": 9,
+      "excerpt": "The paper says R may require adaptation across architectures or domains and that broader architectures and stronger theoretical grounding remain future work."
+    },
+    {
+      "id": "MS1-S19",
+      "type": "claim",
+      "label": "Conclusion claim",
+      "sectionId": "SEC-7",
+      "page": 10,
+      "excerpt": "The conclusion claims robust gains from a lightweight single-model procedure across vision and language domains."
+    },
+    {
+      "id": "MS1-S20",
+      "type": "table",
+      "label": "Table 3: extended CLIP comparison",
+      "sectionId": "SEC-APP-A",
+      "page": 15,
+      "excerpt": "Extended comparisons show the strongest benefits on representation-collapsed checkpoints and smaller changes on strong checkpoints."
+    },
+    {
+      "id": "MS1-S21",
+      "type": "figure",
+      "label": "Figure 6: rank ablation",
+      "sectionId": "SEC-APP-A",
+      "page": 17,
+      "excerpt": "Rank ablations contrast the 20-task benchmark with ImageNet fine-tuning and expose regime-dependent behavior."
+    },
+    {
+      "id": "MS1-S22",
+      "type": "appendix",
+      "label": "Appendix G: boundary-condition argument",
+      "sectionId": "SEC-APP-G",
+      "page": 19,
+      "excerpt": "The coefficient is characterized as the simplest bilinear function satisfying four chosen boundary conditions and as monotone and 1-Lipschitz."
+    },
+    {
+      "id": "MS1-S23",
+      "type": "appendix",
+      "label": "Appendix H: CKA analysis",
+      "sectionId": "SEC-APP-H",
+      "page": 20,
+      "excerpt": "CKA results for two CLIP checkpoints are used to associate low-energy directions with preserving pretrained OOD representations."
+    },
+    {
+      "id": "MS1-S24",
+      "type": "figure",
+      "label": "Figures 10–11: threshold sensitivity",
+      "sectionId": "SEC-APP-I",
+      "page": 21,
+      "excerpt": "R sensitivity is shown for two CLIP checkpoints and a ConvNeXt checkpoint, with different response shapes."
+    },
+    {
+      "id": "MS1-S25",
+      "type": "table",
+      "label": "Table 5: ConvNeXt results",
+      "sectionId": "SEC-APP-J",
+      "page": 22,
+      "excerpt": "ConvNeXt results report 85.17/55.85 ID/OOD for fine-tuning, 85.19/56.07 for freevariance, and 85.57/56.70 for R=0.8."
+    },
+    {
+      "id": "MS1-S26",
+      "type": "figure",
+      "label": "Figure 12: all 70 checkpoints",
+      "sectionId": "SEC-APP-Q",
+      "page": 23,
+      "excerpt": "A quiver plot displays movement in ID and OOD performance after applying MonoSoup to all 70 CLIP checkpoints."
+    },
+    {
+      "id": "MS1-S27",
+      "type": "claim",
+      "label": "Section 5.2: claimed +9.2 language gains",
+      "sectionId": "SEC-5",
+      "page": 8,
+      "excerpt": "The text claims that the largest gains on GSM Plus and GSM8K Platinum are +9.2 points each."
+    },
+    {
+      "id": "MS1-S28",
+      "type": "equation",
+      "label": "Appendix C: dependence between R and cosine alpha",
+      "sectionId": "SEC-APP-A",
+      "page": 16,
+      "excerpt": "The appendix derives cosine-squared alpha = 1 - P_k, where P_k is the spectral energy retained by the high-energy component selected using R."
+    },
+    {
+      "id": "MS1-S29",
+      "type": "equation",
+      "label": "Equation 6: complementary coefficient constraint",
+      "sectionId": "SEC-4",
+      "page": 6,
+      "excerpt": "The method sets lambda Low = rho + (1-rho) cosine alpha and lambda High = 1 - lambda Low, forcing the two coefficients to sum to one."
+    },
+    {
+      "id": "MS1-S30",
+      "type": "paragraph",
+      "label": "Section 3 to Section 4 mechanism transition",
+      "sectionId": "SEC-4",
+      "page": 4,
+      "excerpt": "The multi-model analysis measures cosine similarity between distinct task vectors, while MonoSoup transitions to an SVD decomposition of one task vector."
+    }
+  ],
+  "paperGraph": {
+    "nodes": [
+      {
+        "id": "N-PROBLEM",
+        "type": "question",
+        "label": "Can one checkpoint recover soup-like robustness?",
+        "sourceIds": [
+          "MS1-S01",
+          "MS1-S02"
+        ],
+        "summary": "The motivating research question."
+      },
+      {
+        "id": "N-ALIGN",
+        "type": "claim",
+        "label": "Aligned updates merge better",
+        "sourceIds": [
+          "MS1-S05",
+          "MS1-S06",
+          "MS1-S07"
+        ],
+        "summary": "An empirical same-task merging observation."
+      },
+      {
+        "id": "N-SFGS",
+        "type": "method",
+        "label": "Similarity-Filtered Greedy Soup",
+        "sourceIds": [
+          "MS1-S05"
+        ],
+        "summary": "A geometric checkpoint-selection probe."
+      },
+      {
+        "id": "N-SVD",
+        "type": "method",
+        "label": "SVD update decomposition",
+        "sourceIds": [
+          "MS1-S08"
+        ],
+        "summary": "Splits a layer update by retained spectral energy."
+      },
+      {
+        "id": "N-COEFF",
+        "type": "method",
+        "label": "Adaptive spectral reweighting",
+        "sourceIds": [
+          "MS1-S10",
+          "MS1-S11",
+          "MS1-S12"
+        ],
+        "summary": "Combines spectral decay and low-energy mass."
+      },
+      {
+        "id": "N-MONO",
+        "type": "method",
+        "label": "MonoSoup",
+        "sourceIds": [
+          "MS1-S01",
+          "MS1-S08",
+          "MS1-S11"
+        ],
+        "summary": "A post-hoc edit of one checkpoint."
+      },
+      {
+        "id": "N-CLIP",
+        "type": "evidence",
+        "label": "CLIP natural-shift evaluation",
+        "sourceIds": [
+          "MS1-S13",
+          "MS1-S16",
+          "MS1-S20",
+          "MS1-S26"
+        ],
+        "summary": "Vision evidence across selected and all checkpoints."
+      },
+      {
+        "id": "N-QWEN",
+        "type": "evidence",
+        "label": "Qwen reasoning evaluation",
+        "sourceIds": [
+          "MS1-S14",
+          "MS1-S15"
+        ],
+        "summary": "Language results on difficulty- and task-shifted benchmarks."
+      },
+      {
+        "id": "N-CKA",
+        "type": "evidence",
+        "label": "CKA interpretation",
+        "sourceIds": [
+          "MS1-S23"
+        ],
+        "summary": "Feature similarity evidence on two CLIP checkpoints."
+      },
+      {
+        "id": "N-CONVNEXT",
+        "type": "evidence",
+        "label": "ConvNeXt evaluation",
+        "sourceIds": [
+          "MS1-S24",
+          "MS1-S25"
+        ],
+        "summary": "Non-Transformer evidence included in the supplied PDF."
+      },
+      {
+        "id": "N-THEORY-GAP",
+        "type": "gap",
+        "label": "Robustness theory remains bounded",
+        "sourceIds": [
+          "MS1-S18",
+          "MS1-S22"
+        ],
+        "summary": "Chosen properties do not prove optimality or a causal OOD guarantee."
+      },
+      {
+        "id": "N-SCALE-GAP",
+        "type": "gap",
+        "label": "No large-model cost profile",
+        "sourceIds": [
+          "MS1-S18"
+        ],
+        "summary": "The supplied manuscript has no 2–7B+ accuracy and resource profile."
+      }
+    ],
+    "edges": [
+      {
+        "id": "E01",
+        "source": "N-PROBLEM",
+        "target": "N-MONO",
+        "relation": "answered by",
+        "sourceIds": [
+          "MS1-S01"
+        ]
+      },
+      {
+        "id": "E02",
+        "source": "N-ALIGN",
+        "target": "N-SFGS",
+        "relation": "tested by",
+        "sourceIds": [
+          "MS1-S05",
+          "MS1-S07"
+        ]
+      },
+      {
+        "id": "E03",
+        "source": "N-ALIGN",
+        "target": "N-SVD",
+        "relation": "motivates",
+        "sourceIds": [
+          "MS1-S07",
+          "MS1-S08"
+        ]
+      },
+      {
+        "id": "E04",
+        "source": "N-SVD",
+        "target": "N-COEFF",
+        "relation": "feeds",
+        "sourceIds": [
+          "MS1-S08",
+          "MS1-S11"
+        ]
+      },
+      {
+        "id": "E05",
+        "source": "N-COEFF",
+        "target": "N-MONO",
+        "relation": "defines",
+        "sourceIds": [
+          "MS1-S11"
+        ]
+      },
+      {
+        "id": "E06",
+        "source": "N-MONO",
+        "target": "N-CLIP",
+        "relation": "evaluated by",
+        "sourceIds": [
+          "MS1-S13"
+        ]
+      },
+      {
+        "id": "E07",
+        "source": "N-MONO",
+        "target": "N-QWEN",
+        "relation": "evaluated by",
+        "sourceIds": [
+          "MS1-S14"
+        ]
+      },
+      {
+        "id": "E08",
+        "source": "N-COEFF",
+        "target": "N-CKA",
+        "relation": "interpreted by",
+        "sourceIds": [
+          "MS1-S23"
+        ]
+      },
+      {
+        "id": "E09",
+        "source": "N-MONO",
+        "target": "N-CONVNEXT",
+        "relation": "evaluated by",
+        "sourceIds": [
+          "MS1-S25"
+        ]
+      },
+      {
+        "id": "E10",
+        "source": "N-COEFF",
+        "target": "N-THEORY-GAP",
+        "relation": "qualified by",
+        "sourceIds": [
+          "MS1-S18",
+          "MS1-S22"
+        ]
+      },
+      {
+        "id": "E11",
+        "source": "N-MONO",
+        "target": "N-SCALE-GAP",
+        "relation": "qualified by",
+        "sourceIds": [
+          "MS1-S18"
+        ]
+      }
+    ],
+    "layoutHints": [
+      {
+        "nodeId": "N-PROBLEM",
+        "x": 80,
+        "y": 120,
+        "group": "motivation",
+        "rank": 0
+      },
+      {
+        "nodeId": "N-ALIGN",
+        "x": 300,
+        "y": 80,
+        "group": "analysis",
+        "rank": 1
+      },
+      {
+        "nodeId": "N-SFGS",
+        "x": 300,
+        "y": 210,
+        "group": "analysis",
+        "rank": 1
+      },
+      {
+        "nodeId": "N-SVD",
+        "x": 520,
+        "y": 80,
+        "group": "method",
+        "rank": 2
+      },
+      {
+        "nodeId": "N-COEFF",
+        "x": 520,
+        "y": 210,
+        "group": "method",
+        "rank": 2
+      },
+      {
+        "nodeId": "N-MONO",
+        "x": 720,
+        "y": 145,
+        "group": "method",
+        "rank": 3
+      },
+      {
+        "nodeId": "N-CLIP",
+        "x": 930,
+        "y": 50,
+        "group": "evidence",
+        "rank": 4
+      },
+      {
+        "nodeId": "N-QWEN",
+        "x": 930,
+        "y": 130,
+        "group": "evidence",
+        "rank": 4
+      },
+      {
+        "nodeId": "N-CKA",
+        "x": 930,
+        "y": 210,
+        "group": "evidence",
+        "rank": 4
+      },
+      {
+        "nodeId": "N-CONVNEXT",
+        "x": 930,
+        "y": 290,
+        "group": "evidence",
+        "rank": 4
+      },
+      {
+        "nodeId": "N-THEORY-GAP",
+        "x": 720,
+        "y": 330,
+        "group": "gap",
+        "rank": 3
+      },
+      {
+        "nodeId": "N-SCALE-GAP",
+        "x": 930,
+        "y": 390,
+        "group": "gap",
+        "rank": 4
+      }
+    ]
+  },
+  "paperSummary": {
+    "overview": "Fine-tuning can trade OOD robustness for target-task specialization, while model soups require multiple checkpoints. MonoSoup decomposes each fine-tuning update with SVD and reweights high- and low-energy components using layer-wise spectral quantities.",
+    "keyPoints": [
+      {
+        "id": "KP-PROBLEM",
+        "title": "Problem",
+        "summary": "Fine-tuning can trade OOD robustness for target-task specialization, while model soups require multiple checkpoints.",
+        "sourceIds": [
+          "MS1-S01",
+          "MS1-S02"
+        ],
+        "nodeIds": [
+          "N-PROBLEM"
+        ]
+      },
+      {
+        "id": "KP-APPROACH",
+        "title": "Approach",
+        "summary": "MonoSoup decomposes each fine-tuning update with SVD and reweights high- and low-energy components using layer-wise spectral quantities.",
+        "sourceIds": [
+          "MS1-S08",
+          "MS1-S11"
+        ],
+        "nodeIds": [
+          "N-SVD",
+          "N-MONO"
+        ]
+      },
+      {
+        "id": "KP-EVIDENCE",
+        "title": "Reported evidence",
+        "summary": "CLIP/ImageNet natural shifts; Qwen3-0.6B reasoning benchmarks; Wise-FT combinations; CKA on two CLIP checkpoints; ConvNeXt results; rank and threshold ablations",
+        "sourceIds": [
+          "MS1-S13",
+          "MS1-S14",
+          "MS1-S25"
+        ],
+        "nodeIds": [
+          "N-CLIP",
+          "N-QWEN",
+          "N-CONVNEXT"
+        ]
+      },
+      {
+        "id": "KP-CONTRIB",
+        "title": "Claimed contributions",
+        "summary": "Same-task update-alignment analysis; Similarity-Filtered Greedy Soup; Single-checkpoint spectral reweighting; Vision and language evaluation",
+        "sourceIds": [
+          "MS1-S03"
+        ],
+        "nodeIds": [
+          "N-MONO"
+        ]
+      }
+    ]
+  },
+  "reviewerRun": {
+    "signals": [
+      {
+        "id": "SIG-NOVELTY",
+        "label": "SVD-based contribution claim",
+        "sourceIds": [
+          "MS1-S03",
+          "MS1-S04"
+        ]
+      },
+      {
+        "id": "SIG-THEORY",
+        "label": "Derived weighting rule",
+        "sourceIds": [
+          "MS1-S11",
+          "MS1-S22"
+        ]
+      },
+      {
+        "id": "SIG-GENERALITY",
+        "label": "Architecture and threshold scope",
+        "sourceIds": [
+          "MS1-S18",
+          "MS1-S24",
+          "MS1-S25"
+        ]
+      },
+      {
+        "id": "SIG-OOD",
+        "label": "Language ID/OOD classification",
+        "sourceIds": [
+          "MS1-S14",
+          "MS1-S15"
+        ]
+      },
+      {
+        "id": "SIG-SCALE",
+        "label": "Efficiency and scalability claim",
+        "sourceIds": [
+          "MS1-S01",
+          "MS1-S18"
+        ]
+      },
+      {
+        "id": "SIG-NUMBER",
+        "label": "Pair-count statement",
+        "sourceIds": [
+          "MS1-S06"
+        ]
+      },
+      {
+        "id": "SIG-EFFECT",
+        "label": "Strong-checkpoint effect size",
+        "sourceIds": [
+          "MS1-S13",
+          "MS1-S20"
+        ]
+      },
+      {
+        "id": "SIG-SEMANTICS",
+        "label": "Residual energy described as alignment",
+        "sourceIds": [
+          "MS1-S12",
+          "MS1-S28"
+        ]
+      },
+      {
+        "id": "SIG-DEPENDENCE",
+        "label": "Dependence among R, P_k, and cosine alpha",
+        "sourceIds": [
+          "MS1-S17",
+          "MS1-S28"
+        ]
+      },
+      {
+        "id": "SIG-SHRINK",
+        "label": "Complementary coefficients impose update shrinkage",
+        "sourceIds": [
+          "MS1-S08",
+          "MS1-S29"
+        ]
+      },
+      {
+        "id": "SIG-BRIDGE",
+        "label": "Multi-model alignment to single-model spectrum transition",
+        "sourceIds": [
+          "MS1-S07",
+          "MS1-S30"
+        ]
+      },
+      {
+        "id": "SIG-QWEN-NUM",
+        "label": "Claimed +9.2 language gain",
+        "sourceIds": [
+          "MS1-S14",
+          "MS1-S27"
+        ]
+      }
+    ],
+    "candidateAgents": [
+      {
+        "id": "AG-CONTRIB",
+        "label": "Contribution reviewer",
+        "description": "Separates setting novelty from primitive novelty.",
+        "selected": true,
+        "triggerSignalIds": [
+          "SIG-NOVELTY"
+        ]
+      },
+      {
+        "id": "AG-THEORY",
+        "label": "Theory reviewer",
+        "description": "Checks what follows from the coefficient derivation and whether named quantities match their definitions.",
+        "selected": true,
+        "triggerSignalIds": [
+          "SIG-THEORY",
+          "SIG-SEMANTICS",
+          "SIG-DEPENDENCE",
+          "SIG-SHRINK",
+          "SIG-BRIDGE"
+        ]
+      },
+      {
+        "id": "AG-SOURCE",
+        "label": "Source auditor",
+        "description": "Searches main text and appendices before absence judgments.",
+        "selected": true,
+        "triggerSignalIds": [
+          "SIG-GENERALITY"
+        ]
+      },
+      {
+        "id": "AG-SCOPE",
+        "label": "Scope assessor",
+        "description": "Tests whether evaluation labels support the claim scope.",
+        "selected": true,
+        "triggerSignalIds": [
+          "SIG-OOD",
+          "SIG-SCALE"
+        ]
+      },
+      {
+        "id": "AG-NUM",
+        "label": "Numerical auditor",
+        "description": "Recomputes deterministic quantities and checks narrative claims against table cells.",
+        "selected": true,
+        "triggerSignalIds": [
+          "SIG-NUMBER",
+          "SIG-EFFECT",
+          "SIG-QWEN-NUM"
+        ]
+      },
+      {
+        "id": "AG-PROOF",
+        "label": "Formal proof reviewer",
+        "description": "Skipped because no theorem-level guarantee is claimed.",
+        "selected": false,
+        "triggerSignalIds": []
+      }
+    ],
+    "selectedAgentIds": [
+      "AG-CONTRIB",
+      "AG-THEORY",
+      "AG-SOURCE",
+      "AG-SCOPE",
+      "AG-NUM"
+    ],
+    "routingEvents": [
+      {
+        "type": "message",
+        "text": "12 review signals extracted from the source-linked graph."
+      },
+      {
+        "type": "spawn_agent",
+        "agentId": "AG-CONTRIB"
+      },
+      {
+        "type": "spawn_agent",
+        "agentId": "AG-THEORY"
+      },
+      {
+        "type": "spawn_agent",
+        "agentId": "AG-SOURCE"
+      },
+      {
+        "type": "spawn_agent",
+        "agentId": "AG-SCOPE"
+      },
+      {
+        "type": "spawn_agent",
+        "agentId": "AG-NUM"
+      },
+      {
+        "type": "message",
+        "text": "Formal proof review skipped; the review will preserve empirical and judgment boundaries."
+      },
+      {
+        "type": "stop",
+        "reason": "Reviewer team assembled from graph signals."
+      }
+    ],
+    "review": {
+      "overallAssessment": "A practical and clearly structured single-checkpoint method with useful empirical evidence. The central concern is that the paper's alignment narrative does not match the residual-energy quantity used by MonoSoup, while the imposed coefficient constraint leaves a layer-wise shrinkage explanation unisolated. The review also identifies bounded contribution, OOD-scope, scale, uncertainty, and numerical-reporting issues. Architecture coverage is present in the revised snapshot and is not treated as an original-review false positive.",
+      "strengths": [
+        "Practical post-hoc, data-free objective.",
+        "Simple layer-wise construction with broad source traceability.",
+        "Experiments cover vision, language, a non-Transformer architecture, and multiple ablations.",
+        "The supplied appendix adds useful coefficient and representation analysis."
+      ],
+      "authorQuestions": [
+        "Use bounded cross-benchmark language or add a controlled distribution-shift protocol.",
+        "Add at least one multi-billion-parameter experiment with accuracy and end-to-end resource measurements.",
+        "Disclose the six exclusions and their effect on the alignment analysis.",
+        "Rename the quantity residual-energy share and treat CKA preservation as a separate empirical observation, or define and validate an actual alignment measure.",
+        "Compare against layer-wise scalar shrinkage matched to MonoSoup's update norm and ablate the sum-to-one constraint.",
+        "Present Section 3 as inspiration unless a direct mapping between pairwise alignment and single-update spectral statistics is demonstrated.",
+        "Recompute every Table 2 delta, name the comparison baseline, and replace the +9.2 statement with traceable values."
+      ],
+      "findingIds": [
+        "F01",
+        "F02",
+        "F03",
+        "F04",
+        "F05",
+        "F06",
+        "F07",
+        "F08",
+        "F09",
+        "F10",
+        "F11",
+        "F12"
+      ]
+    }
+  },
+  "findings": [
+    {
+      "id": "F01",
+      "category": "Contribution and novelty",
+      "critique": "The single-checkpoint setting is practically useful, but the paper does not establish how much of the algorithmic contribution goes beyond existing SVD-based editing and scaling methods.",
+      "reviewerAgentId": "AG-CONTRIB",
+      "sourceIds": [
+        "MS1-S03",
+        "MS1-S04",
+        "MS1-S08",
+        "MS1-S11"
+      ],
+      "contract": {
+        "allegation": "Contribution differentiation is incomplete.",
+        "type": "scientific judgment",
+        "scope": "Stated contributions and paper-internal related-work comparison",
+        "falsifier": "A precise operation-level comparison demonstrating a distinct capability or guarantee.",
+        "evidenceBurden": "Credit the single-checkpoint formulation while avoiding unsupported external-priority claims.",
+        "stopRule": "Do not declare the method non-novel without external literature verification.",
+        "relevanceTarget": "Contribution strength"
+      },
+      "evidenceFor": [
+        {
+          "id": "F01-E1",
+          "direction": "for",
+          "sourceIds": [
+            "MS1-S04",
+            "MS1-S08",
+            "MS1-S11"
+          ],
+          "summary": "The paper itself describes related single-model scaling and SVD-adjacent approaches, while its core operation remains spectral decomposition and reweighting."
+        }
+      ],
+      "evidenceAgainst": [
+        {
+          "id": "F01-E2",
+          "direction": "against",
+          "sourceIds": [
+            "MS1-S01",
+            "MS1-S03"
+          ],
+          "summary": "The one-checkpoint, data-free robustness objective and geometry-to-method framing are clearly differentiated at the problem-setting level."
+        }
+      ],
+      "missingEvidence": [
+        "Externally verified, operation-level comparison with the closest spectral methods."
+      ],
+      "validity": "human_required",
+      "importance": {
+        "level": "High",
+        "explanation": "Contribution positioning affects the central publication claim."
+      },
+      "sensitivity": {
+        "status": "inconclusive",
+        "explanation": "External literature adjudication is outside this paper-only fixture."
+      },
+      "limitations": [
+        "Paper-internal evidence cannot establish priority."
+      ],
+      "nextAction": "Add a compact taxonomy and controlled comparisons against the closest SVD-based post-hoc methods."
+    },
+    {
+      "id": "F02",
+      "category": "Theory and mechanism",
+      "critique": "The boundary-condition derivation gives the coefficient useful mathematical properties, but it does not show that the chosen conditions are necessary for OOD robustness or that the rule is optimal.",
+      "reviewerAgentId": "AG-THEORY",
+      "sourceIds": [
+        "MS1-S11",
+        "MS1-S12",
+        "MS1-S18",
+        "MS1-S22",
+        "MS1-S23"
+      ],
+      "contract": {
+        "allegation": "The explanatory claim exceeds the derivation.",
+        "type": "reasoning concern",
+        "scope": "Equation 6 and Appendices G–H",
+        "falsifier": "A risk-based derivation or comparison showing why these conditions identify the robustness-preserving rule.",
+        "evidenceBurden": "Preserve the valid bilinear uniqueness, monotonicity, and Lipschitz results.",
+        "stopRule": "Do not demand convergence for a one-shot transformation.",
+        "relevanceTarget": "Mechanistic justification"
+      },
+      "evidenceFor": [
+        {
+          "id": "F02-E1",
+          "direction": "for",
+          "sourceIds": [
+            "MS1-S18",
+            "MS1-S22"
+          ],
+          "summary": "The appendix explicitly limits optimality and derives uniqueness only after selecting four boundary conditions and a bilinear family."
+        }
+      ],
+      "evidenceAgainst": [
+        {
+          "id": "F02-E2",
+          "direction": "against",
+          "sourceIds": [
+            "MS1-S22",
+            "MS1-S23"
+          ],
+          "summary": "The paper establishes monotonicity, 1-Lipschitz sensitivity, and supplies CKA evidence consistent with its interpretation."
+        }
+      ],
+      "missingEvidence": [
+        "A theory connecting spectral statistics to ID/OOD risk.",
+        "Comparison with alternative admissible coefficient families."
+      ],
+      "validity": "supported",
+      "importance": {
+        "level": "High",
+        "explanation": "The weighting rule is the central mechanism."
+      },
+      "sensitivity": {
+        "status": "inconclusive",
+        "explanation": "A substantive theory cannot be simulated as a wording change."
+      },
+      "limitations": [
+        "The empirical mechanism may still be useful without a full theory."
+      ],
+      "nextAction": "State the rule as a constrained design choice or add risk-based theory and competing-rule ablations."
+    },
+    {
+      "id": "F03",
+      "category": "Generality across manuscript versions",
+      "critique": "The categorical allegation that the current supplied manuscript contains no non-Transformer evidence is false, although that concern was valid for the original submission and the revised automatic-selection procedure remains underdocumented.",
+      "reviewerAgentId": "AG-SOURCE",
+      "sourceIds": [
+        "MS1-S17",
+        "MS1-S18",
+        "MS1-S24",
+        "MS1-S25"
+      ],
+      "contract": {
+        "allegation": "Non-Transformer evidence is absent from the current supplied snapshot.",
+        "type": "version-aware factual absence allegation",
+        "scope": "Current PDF main text and appendices; original-review timing recorded separately",
+        "falsifier": "Locate a non-Transformer experiment in the current snapshot.",
+        "evidenceBurden": "Search appendices and preserve the chronology of added evidence.",
+        "stopRule": "Refute only the current-snapshot absence allegation; do not retroactively characterize the original reviewer concern as false.",
+        "relevanceTarget": "Architecture generality"
+      },
+      "evidenceFor": [
+        {
+          "id": "F03-E1",
+          "direction": "for",
+          "sourceIds": [
+            "MS1-S17",
+            "MS1-S18"
+          ],
+          "summary": "The main discussion calls R the only hyperparameter and acknowledges architecture/domain dependence."
+        }
+      ],
+      "evidenceAgainst": [
+        {
+          "id": "F03-E2",
+          "direction": "against",
+          "sourceIds": [
+            "MS1-S24",
+            "MS1-S25"
+          ],
+          "summary": "The appendix evaluates ConvNeXt and reports a freevariance variant alongside R=0.8."
+        }
+      ],
+      "missingEvidence": [
+        "A clear definition and reproducible procedure for the briefly labeled freevariance variant."
+      ],
+      "validity": "refuted",
+      "importance": {
+        "level": "Moderate",
+        "explanation": "The categorical current-snapshot absence claim is false, while the original concern was resolved through revision rather than reviewer error."
+      },
+      "sensitivity": {
+        "status": "passed",
+        "explanation": "Removing the rebuttal-era appendix records recreates the original evidence gap; unrelated result changes do not."
+      },
+      "limitations": [
+        "The appendix terminology is terse and one ConvNeXt family does not establish broad architectural coverage.",
+        "This verdict applies only to the revised supplied PDF."
+      ],
+      "nextAction": "Record the concern as resolved after revision, formally specify freevariance, and expand architecture coverage."
+    },
+    {
+      "id": "F04",
+      "category": "Evaluation validity",
+      "critique": "The language evaluation labels harder or different tasks as OOD without isolating distribution shift, so it supports cross-benchmark generalization but not a clean OOD-robustness conclusion.",
+      "reviewerAgentId": "AG-SCOPE",
+      "sourceIds": [
+        "MS1-S14",
+        "MS1-S15",
+        "MS1-S18"
+      ],
+      "contract": {
+        "allegation": "The language OOD interpretation is broader than the protocol supports.",
+        "type": "scope judgment",
+        "scope": "Qwen3-0.6B benchmarks in Section 5.2",
+        "falsifier": "A controlled shift holding capability and difficulty fixed or an explicit bounded claim.",
+        "evidenceBurden": "Do not invalidate the reported benchmark accuracies.",
+        "stopRule": "Retain results as descriptive cross-benchmark evidence.",
+        "relevanceTarget": "Language OOD claim"
+      },
+      "evidenceFor": [
+        {
+          "id": "F04-E1",
+          "direction": "for",
+          "sourceIds": [
+            "MS1-S14",
+            "MS1-S15"
+          ],
+          "summary": "The ID/OOD grouping mixes training overlap, task identity, and increased difficulty."
+        }
+      ],
+      "evidenceAgainst": [
+        {
+          "id": "F04-E2",
+          "direction": "against",
+          "sourceIds": [
+            "MS1-S14"
+          ],
+          "summary": "The reported results still show gains across several reasoning and multiple-choice benchmarks."
+        }
+      ],
+      "missingEvidence": [
+        "Controlled linguistic, domain, or corruption shifts for the language model."
+      ],
+      "validity": "supported",
+      "importance": {
+        "level": "High",
+        "explanation": "OOD robustness is a headline claim."
+      },
+      "sensitivity": {
+        "status": "passed",
+        "explanation": "Narrowing the claim to cross-benchmark generalization resolves the scope concern; unrelated numerical formatting does not."
+      },
+      "limitations": [
+        "This finding concerns interpretation, not arithmetic correctness of Table 2."
+      ],
+      "nextAction": "Use bounded cross-benchmark language or add a controlled distribution-shift protocol."
+    },
+    {
+      "id": "F05",
+      "category": "Scalability and practicality",
+      "critique": "The manuscript motivates MonoSoup through large-model checkpoint cost but provides no accuracy, runtime, peak-memory, or storage profile at the 2–7B+ scale where the claimed advantage is most consequential.",
+      "reviewerAgentId": "AG-SCOPE",
+      "sourceIds": [
+        "MS1-S01",
+        "MS1-S03",
+        "MS1-S14",
+        "MS1-S18"
+      ],
+      "contract": {
+        "allegation": "The practical scale claim lacks direct evidence.",
+        "type": "evidence-gap judgment",
+        "scope": "Efficiency motivation and evaluated model sizes",
+        "falsifier": "End-to-end quality and resource measurements on at least one multi-billion-parameter model.",
+        "evidenceBurden": "Acknowledge that one checkpoint logically avoids training a checkpoint ensemble.",
+        "stopRule": "Do not fabricate hardware costs or infer failure at scale.",
+        "relevanceTarget": "Practical scalability"
+      },
+      "evidenceFor": [
+        {
+          "id": "F05-E1",
+          "direction": "for",
+          "sourceIds": [
+            "MS1-S01",
+            "MS1-S14",
+            "MS1-S18"
+          ],
+          "summary": "The largest language experiment uses Qwen3-0.6B and the supplied PDF contains no measured wall-clock or memory table."
+        }
+      ],
+      "evidenceAgainst": [
+        {
+          "id": "F05-E2",
+          "direction": "against",
+          "sourceIds": [
+            "MS1-S01",
+            "MS1-S03"
+          ],
+          "summary": "Using one fine-tuned checkpoint plainly removes the need to train and retain dozens of soup constituents."
+        }
+      ],
+      "missingEvidence": [
+        "2–7B+ quality experiment.",
+        "Measured SVD runtime, peak memory, storage, and comparison protocol."
+      ],
+      "validity": "supported",
+      "importance": {
+        "level": "High",
+        "explanation": "The gap bears directly on the practical motivation."
+      },
+      "sensitivity": {
+        "status": "inconclusive",
+        "explanation": "The required scale experiment is unavailable in this baseline manuscript."
+      },
+      "limitations": [
+        "Absence of evidence is not evidence that the method fails to scale."
+      ],
+      "nextAction": "Add at least one multi-billion-parameter experiment with accuracy and end-to-end resource measurements."
+    },
+    {
+      "id": "F06",
+      "category": "Numerical reporting",
+      "critique": "Figure 2 reports 2,409 pairs from 70 checkpoints, but 70 choose 2 equals 2,415 and no six-pair exclusion is disclosed.",
+      "reviewerAgentId": "AG-NUM",
+      "sourceIds": [
+        "MS1-S06"
+      ],
+      "contract": {
+        "allegation": "A six-pair reporting discrepancy is unexplained.",
+        "type": "deterministic numerical check",
+        "scope": "Figure 2 pair count",
+        "falsifier": "A disclosed exclusion rule accounting for exactly six pairs.",
+        "evidenceBurden": "Show operands and calculation.",
+        "stopRule": "Keep the verdict local; do not imply fabrication or invalidate the experiment.",
+        "relevanceTarget": "Reporting transparency"
+      },
+      "evidenceFor": [
+        {
+          "id": "F06-E1",
+          "direction": "for",
+          "sourceIds": [
+            "MS1-S06"
+          ],
+          "summary": "The figure reports 2,409 combinations; deterministic calculation gives 70 × 69 ÷ 2 = 2,415.",
+          "toolId": "deterministic-calculator"
+        }
+      ],
+      "evidenceAgainst": [],
+      "missingEvidence": [
+        "Identity of the six excluded pairs and whether exclusion changes the summary."
+      ],
+      "validity": "verified",
+      "importance": {
+        "level": "Low",
+        "explanation": "This is a bounded reporting issue unless the excluded cases materially affect results."
+      },
+      "sensitivity": {
+        "status": "passed",
+        "explanation": "Adding an exact exclusion disclosure repairs the finding; unrelated prose does not."
+      },
+      "limitations": [
+        "The calculation alone cannot determine why six pairs are absent."
+      ],
+      "nextAction": "Disclose the six exclusions and their effect on the alignment analysis."
+    },
+    {
+      "id": "F07",
+      "category": "Effect size and uncertainty",
+      "critique": "The strongest-checkpoint improvements are modest and are reported without variability estimates, making statistical reliability difficult to assess even though weak checkpoints improve substantially.",
+      "reviewerAgentId": "AG-NUM",
+      "sourceIds": [
+        "MS1-S13",
+        "MS1-S20",
+        "MS1-S26"
+      ],
+      "contract": {
+        "allegation": "Small strong-baseline gains are insufficiently uncertainty-qualified.",
+        "type": "statistical reporting judgment",
+        "scope": "CLIP comparisons and all-checkpoint visualization",
+        "falsifier": "Repeated-run uncertainty or a deterministic evaluation argument showing the differences are stable.",
+        "evidenceBurden": "Preserve the larger weak-checkpoint recoveries.",
+        "stopRule": "Do not call reported point estimates false.",
+        "relevanceTarget": "Empirical strength"
+      },
+      "evidenceFor": [
+        {
+          "id": "F07-E1",
+          "direction": "for",
+          "sourceIds": [
+            "MS1-S13",
+            "MS1-S20"
+          ],
+          "summary": "The best-OOD gain is 0.93 percentage points and no standard deviations or confidence intervals are reported."
+        }
+      ],
+      "evidenceAgainst": [
+        {
+          "id": "F07-E2",
+          "direction": "against",
+          "sourceIds": [
+            "MS1-S13",
+            "MS1-S26"
+          ],
+          "summary": "Weak checkpoints show much larger recovery and Figure 12 visualizes behavior across all 70 checkpoints."
+        }
+      ],
+      "missingEvidence": [
+        "Run-to-run variability or uncertainty intervals.",
+        "Aggregate effect-size statistics over the 70 checkpoints."
+      ],
+      "validity": "supported",
+      "importance": {
+        "level": "Moderate",
+        "explanation": "Uncertainty affects claims of consistent improvement over strong alternatives."
+      },
+      "sensitivity": {
+        "status": "passed",
+        "explanation": "Adding stable repeated-run estimates would weaken the concern; unrelated wording would not."
+      },
+      "limitations": [
+        "Checkpoint evaluation may be deterministic, but fine-tuning and selection variability still matter."
+      ],
+      "nextAction": "Report uncertainty and aggregate effect sizes, separated for strong and collapsed checkpoints."
+    },
+    {
+      "id": "F08",
+      "category": "Mathematical semantics",
+      "critique": "The quantity named cosine alpha is a normalized residual-energy magnitude, not a cosine alignment between the low-energy update and pretrained weights; describing it as alignment or a pretrained-preservation signal overstates what its definition establishes.",
+      "reviewerAgentId": "AG-THEORY",
+      "sourceIds": [
+        "MS1-S12",
+        "MS1-S23",
+        "MS1-S28"
+      ],
+      "contract": {
+        "allegation": "The semantic interpretation of cosine alpha does not follow from its mathematical definition.",
+        "type": "definition and interpretation check",
+        "scope": "Equation 6, Appendix C, and the CKA interpretation",
+        "falsifier": "Identify the two objects whose inner product defines the claimed alignment, or revise the terminology to residual-energy share.",
+        "evidenceBurden": "Separate the exact identity from the empirical CKA correlation.",
+        "stopRule": "Do not claim the empirical correlation is false; limit the verdict to what the formula proves.",
+        "relevanceTarget": "Core mechanism interpretation"
+      },
+      "evidenceFor": [
+        {
+          "id": "F08-E1",
+          "direction": "for",
+          "sourceIds": [
+            "MS1-S28"
+          ],
+          "summary": "Appendix C explicitly derives cosine-squared alpha as 1 - P_k, the fraction of update energy outside the retained subspace."
+        },
+        {
+          "id": "F08-E2",
+          "direction": "for",
+          "sourceIds": [
+            "MS1-S12",
+            "MS1-S23"
+          ],
+          "summary": "The prose nevertheless describes the quantity as alignment and as a pretrained-preservation signal without defining a cosine with pretrained parameters or representations."
+        }
+      ],
+      "evidenceAgainst": [
+        {
+          "id": "F08-E3",
+          "direction": "against",
+          "sourceIds": [
+            "MS1-S23"
+          ],
+          "summary": "The CKA analysis supplies empirical evidence that models retaining more low-energy structure can remain closer to pretrained representations on selected inputs."
+        }
+      ],
+      "missingEvidence": [
+        "A genuine geometric alignment definition involving two specified vectors.",
+        "Evidence that residual-energy share predicts representation preservation beyond the selected CKA cases."
+      ],
+      "validity": "verified",
+      "importance": {
+        "level": "High",
+        "explanation": "The alignment story is the stated bridge from the diagnostic analysis to the proposed method."
+      },
+      "sensitivity": {
+        "status": "passed",
+        "explanation": "Renaming the quantity and narrowing the causal interpretation repairs the semantic defect without changing the algorithm."
+      },
+      "limitations": [
+        "This verdict does not show that the coefficient is ineffective."
+      ],
+      "nextAction": "Rename the quantity residual-energy share and treat CKA preservation as a separate empirical observation, or define and validate an actual alignment measure."
+    },
+    {
+      "id": "F09",
+      "category": "Signal independence",
+      "critique": "The manuscript presents spectral decay and cosine alpha as complementary signals, but both are functions of the same singular-value spectrum and cosine-squared alpha is constrained directly by the R-selected retained energy.",
+      "reviewerAgentId": "AG-THEORY",
+      "sourceIds": [
+        "MS1-S10",
+        "MS1-S17",
+        "MS1-S28"
+      ],
+      "contract": {
+        "allegation": "The claimed complementarity is not quantitatively established.",
+        "type": "mathematical dependency check",
+        "scope": "Definitions of R, rho, and cosine alpha plus the component ablation",
+        "falsifier": "Show that cosine alpha supplies predictive information beyond R, retained rank, and rho across layers and checkpoints.",
+        "evidenceBurden": "Do not equate statistical dependence with total redundancy.",
+        "stopRule": "Preserve the component-ablation result while requesting an incremental-information analysis.",
+        "relevanceTarget": "Coefficient design"
+      },
+      "evidenceFor": [
+        {
+          "id": "F09-E1",
+          "direction": "for",
+          "sourceIds": [
+            "MS1-S28"
+          ],
+          "summary": "Because cosine-squared alpha = 1 - P_k and P_k is selected using R, the value is tightly constrained by the threshold and spectrum."
+        }
+      ],
+      "evidenceAgainst": [
+        {
+          "id": "F09-E2",
+          "direction": "against",
+          "sourceIds": [
+            "MS1-S17"
+          ],
+          "summary": "The component ablation reports different empirical behavior when using rho alone versus cosine alpha alone."
+        }
+      ],
+      "missingEvidence": [
+        "Layer-wise correlations among R, retained rank, rho, and cosine alpha.",
+        "Incremental predictive or ablation evidence controlling for update magnitude."
+      ],
+      "validity": "supported",
+      "importance": {
+        "level": "High",
+        "explanation": "The method is motivated as combining two complementary geometric signals."
+      },
+      "sensitivity": {
+        "status": "passed",
+        "explanation": "A controlled incremental-information analysis can directly support or weaken the concern."
+      },
+      "limitations": [
+        "Two spectrum-derived statistics can still capture different aspects of spectral shape."
+      ],
+      "nextAction": "Report correlations and controlled ablations showing what information cosine alpha contributes beyond R, rank, and rho."
+    },
+    {
+      "id": "F10",
+      "category": "Mechanism identification",
+      "critique": "Forcing lambda High plus lambda Low to equal one scales both spectral components below their fine-tuned coefficients of one, so the reported gains may partly arise from layer-wise shrinkage toward the pretrained model rather than spectral separation itself.",
+      "reviewerAgentId": "AG-THEORY",
+      "sourceIds": [
+        "MS1-S08",
+        "MS1-S11",
+        "MS1-S16",
+        "MS1-S29"
+      ],
+      "contract": {
+        "allegation": "The experiments do not isolate spectral reweighting from induced update shrinkage.",
+        "type": "causal mechanism and ablation concern",
+        "scope": "Equation 6 and comparisons with interpolation baselines",
+        "falsifier": "A matched layer-wise scalar baseline with the same update norm performs materially worse, or an independent-coefficient ablation supports the constraint.",
+        "evidenceBurden": "Acknowledge that Wise-FT tests global rather than matched layer-wise shrinkage.",
+        "stopRule": "Do not claim shrinkage fully explains the gains without the requested baseline.",
+        "relevanceTarget": "Causal contribution of SVD decomposition"
+      },
+      "evidenceFor": [
+        {
+          "id": "F10-E1",
+          "direction": "for",
+          "sourceIds": [
+            "MS1-S29"
+          ],
+          "summary": "The coefficients sum to one, whereas the unedited fine-tuned update uses coefficient one on both high- and low-energy components."
+        }
+      ],
+      "evidenceAgainst": [
+        {
+          "id": "F10-E2",
+          "direction": "against",
+          "sourceIds": [
+            "MS1-S16",
+            "MS1-S17"
+          ],
+          "summary": "Wise-FT and component ablations provide partial evidence that uniform interpolation and individual signals behave differently."
+        }
+      ],
+      "missingEvidence": [
+        "Layer-wise norm-matched scalar shrinkage baseline.",
+        "Ablation allowing high- and low-energy coefficients to vary independently.",
+        "Update-norm statistics by layer."
+      ],
+      "validity": "supported",
+      "importance": {
+        "level": "High",
+        "explanation": "Without this control, the experiment does not identify which part of the proposed mechanism causes the gain."
+      },
+      "sensitivity": {
+        "status": "inconclusive",
+        "explanation": "The decisive matched baseline requires a new experiment."
+      },
+      "limitations": [
+        "The concern identifies an alternative explanation; it does not establish that shrinkage is sufficient."
+      ],
+      "nextAction": "Compare against layer-wise scalar shrinkage matched to MonoSoup's update norm and ablate the sum-to-one constraint."
+    },
+    {
+      "id": "F11",
+      "category": "Argument structure",
+      "critique": "Section 3 studies cosine alignment between distinct same-task model updates, while MonoSoup operates on the singular spectrum of one update; the manuscript does not establish the implication connecting these different objects.",
+      "reviewerAgentId": "AG-THEORY",
+      "sourceIds": [
+        "MS1-S05",
+        "MS1-S07",
+        "MS1-S08",
+        "MS1-S12",
+        "MS1-S30"
+      ],
+      "contract": {
+        "allegation": "The multi-model analysis motivates the problem but does not derive the single-model mechanism.",
+        "type": "reasoning-chain concern",
+        "scope": "Transition from Section 3 to Section 4",
+        "falsifier": "A formal or empirical mapping showing that the single-update statistics predict the pairwise alignment behavior relevant to successful soups.",
+        "evidenceBurden": "Preserve Section 3 as valid empirical evidence about same-task merging.",
+        "stopRule": "Do not require the motivational analysis to be a theorem; require the narrative claim to match its support.",
+        "relevanceTarget": "Geometry-to-method contribution"
+      },
+      "evidenceFor": [
+        {
+          "id": "F11-E1",
+          "direction": "for",
+          "sourceIds": [
+            "MS1-S07",
+            "MS1-S30"
+          ],
+          "summary": "The diagnostic uses cosine similarity between two task vectors, but the proposed method replaces that relation with energy statistics of one task vector."
+        }
+      ],
+      "evidenceAgainst": [
+        {
+          "id": "F11-E2",
+          "direction": "against",
+          "sourceIds": [
+            "MS1-S05",
+            "MS1-S08"
+          ],
+          "summary": "Both analyses support the broader intuition that directional structure in fine-tuning updates matters for generalization."
+        }
+      ],
+      "missingEvidence": [
+        "Cross-check that single-model spectral statistics predict pairwise merge success or soup-like directions.",
+        "A narrower statement separating inspiration from derivation."
+      ],
+      "validity": "supported",
+      "importance": {
+        "level": "High",
+        "explanation": "The claimed geometric bridge is central to the paper's novelty narrative."
+      },
+      "sensitivity": {
+        "status": "passed",
+        "explanation": "Narrowing the claim from derivation to inspiration resolves the logical overreach; a substantive mapping could support the stronger claim."
+      },
+      "limitations": [
+        "A method may work even when its motivating analogy is incomplete."
+      ],
+      "nextAction": "Present Section 3 as inspiration unless a direct mapping between pairwise alignment and single-update spectral statistics is demonstrated."
+    },
+    {
+      "id": "F12",
+      "category": "Numerical claim consistency",
+      "critique": "The statement that GSM Plus and GSM8K Platinum each improve by +9.2 points is not supported by the Table 2 fine-tuned-to-MonoSoup differences and lacks a clearly stated alternative reference baseline.",
+      "reviewerAgentId": "AG-NUM",
+      "sourceIds": [
+        "MS1-S14",
+        "MS1-S27"
+      ],
+      "contract": {
+        "allegation": "A narrative effect-size claim cannot be reconciled with its cited table.",
+        "type": "deterministic table-to-text check",
+        "scope": "Section 5.2 narrative and Table 2",
+        "falsifier": "Identify the exact rows, columns, aggregation, and baseline producing +9.2 on both named benchmarks.",
+        "evidenceBurden": "Check all plausible within-variant baselines before declaring a discrepancy.",
+        "stopRule": "Mark the claim unexplained rather than guessing the intended comparison.",
+        "relevanceTarget": "Language-result accuracy"
+      },
+      "evidenceFor": [
+        {
+          "id": "F12-E1",
+          "direction": "for",
+          "sourceIds": [
+            "MS1-S14",
+            "MS1-S27"
+          ],
+          "summary": "The visible within-variant changes are approximately 0.5–1.5 points, and the prose does not specify a different calculation yielding +9.2 for both benchmarks.",
+          "toolId": "table-difference-auditor"
+        }
+      ],
+      "evidenceAgainst": [],
+      "missingEvidence": [
+        "Exact provenance for each +9.2 value.",
+        "A corrected effect-size statement if the claim is erroneous."
+      ],
+      "validity": "verified",
+      "importance": {
+        "level": "Moderate",
+        "explanation": "The discrepancy directly affects the stated magnitude of language-model evidence."
+      },
+      "sensitivity": {
+        "status": "passed",
+        "explanation": "Correcting the values or adding a reproducible baseline calculation resolves the finding; unrelated prose does not."
+      },
+      "limitations": [
+        "PDF text extraction can merge table cells, so final correction should be checked against source data."
+      ],
+      "nextAction": "Recompute every Table 2 delta, name the comparison baseline, and replace the +9.2 statement with traceable values."
+    }
+  ],
+  "investigations": [
+    {
+      "findingId": "F01",
+      "agentIds": [
+        "AG-CONTRIB",
+        "AG-SOURCE"
+      ],
+      "workflowNodes": [
+        {
+          "id": "F01-W1",
+          "label": "Map contribution",
+          "kind": "inspect",
+          "x": 36,
+          "y": 88
+        },
+        {
+          "id": "F01-W2",
+          "label": "Check internal related work",
+          "kind": "inspect",
+          "x": 286,
+          "y": 88
+        },
+        {
+          "id": "F01-W3",
+          "label": "Request external adjudication",
+          "subtitle": "Bounded stop",
+          "x": 536,
+          "y": 88
+        }
+      ],
+      "workflowEdges": [
+        {
+          "id": "F01-X1",
+          "source": "F01-W1",
+          "target": "F01-W2",
+          "relation": "scope"
+        },
+        {
+          "id": "F01-X2",
+          "source": "F01-W2",
+          "target": "F01-W3",
+          "relation": "external gap"
+        }
+      ],
+      "events": [
+        {
+          "type": "message",
+          "text": "The setting-level contribution is supported; priority cannot be resolved from the paper alone."
+        },
+        {
+          "type": "activate_node",
+          "nodeId": "F01-W1"
+        },
+        {
+          "type": "reveal_source",
+          "sourceIds": [
+            "MS1-S03",
+            "MS1-S04"
+          ]
+        },
+        {
+          "type": "complete_node",
+          "nodeId": "F01-W1"
+        },
+        {
+          "type": "activate_node",
+          "nodeId": "F01-W2"
+        },
+        {
+          "type": "reveal_source",
+          "sourceIds": [
+            "MS1-S08",
+            "MS1-S11"
+          ]
+        },
+        {
+          "type": "spawn_agent",
+          "agentId": "AG-SOURCE"
+        },
+        {
+          "type": "update_ledger",
+          "evidenceRecordIds": [
+            "LED-F01-E1",
+            "LED-F01-E2"
+          ]
+        },
+        {
+          "type": "complete_node",
+          "nodeId": "F01-W2"
+        },
+        {
+          "type": "activate_node",
+          "nodeId": "F01-W3"
+        },
+        {
+          "type": "update_ledger",
+          "evidenceRecordIds": [
+            "LED-F01-E1",
+            "LED-F01-E2",
+            "LED-F01-G1"
+          ]
+        },
+        {
+          "type": "verdict",
+          "status": "human_required"
+        },
+        {
+          "type": "complete_node",
+          "nodeId": "F01-W3"
+        },
+        {
+          "type": "stop",
+          "reason": "External literature verification is unavailable."
+        }
+      ],
+      "finalLedger": {
+        "for": [
+          {
+            "id": "LED-F01-E1",
+            "direction": "for",
+            "sourceIds": [
+              "MS1-S04",
+              "MS1-S08",
+              "MS1-S11"
+            ],
+            "summary": "The paper itself describes related single-model scaling and SVD-adjacent approaches, while its core operation remains spectral decomposition and reweighting."
+          }
+        ],
+        "against": [
+          {
+            "id": "LED-F01-E2",
+            "direction": "against",
+            "sourceIds": [
+              "MS1-S01",
+              "MS1-S03"
+            ],
+            "summary": "The one-checkpoint, data-free robustness objective and geometry-to-method framing are clearly differentiated at the problem-setting level."
+          }
+        ],
+        "gaps": [
+          {
+            "id": "LED-F01-G1",
+            "direction": "gap",
+            "sourceIds": [
+              "MS1-S03"
+            ],
+            "summary": "Externally verified, operation-level comparison with the closest spectral methods."
+          }
+        ]
+      },
+      "initialVerdict": "human_required",
+      "limitations": [
+        "No external-source retrieval."
+      ],
+      "counterfactualTestId": "CF-F01"
+    },
+    {
+      "findingId": "F02",
+      "agentIds": [
+        "AG-THEORY",
+        "AG-SOURCE"
+      ],
+      "workflowNodes": [
+        {
+          "id": "F02-W1",
+          "label": "Parse derivation",
+          "kind": "inspect",
+          "x": 36,
+          "y": 88
+        },
+        {
+          "id": "F02-W2",
+          "label": "Separate properties from guarantee",
+          "x": 286,
+          "y": 88
+        },
+        {
+          "id": "F02-W3",
+          "label": "Replan for risk theory",
+          "subtitle": "Bounded stop",
+          "kind": "replan",
+          "x": 536,
+          "y": 88
+        }
+      ],
+      "workflowEdges": [
+        {
+          "id": "F02-X1",
+          "source": "F02-W1",
+          "target": "F02-W2",
+          "relation": "check implication"
+        },
+        {
+          "id": "F02-X2",
+          "source": "F02-W2",
+          "target": "F02-W3",
+          "relation": "evidence gap"
+        }
+      ],
+      "events": [
+        {
+          "type": "message",
+          "text": "Replan budget 1/1 exhausted: no risk-based derivation is present."
+        },
+        {
+          "type": "activate_node",
+          "nodeId": "F02-W1"
+        },
+        {
+          "type": "reveal_source",
+          "sourceIds": [
+            "MS1-S11",
+            "MS1-S12"
+          ]
+        },
+        {
+          "type": "complete_node",
+          "nodeId": "F02-W1"
+        },
+        {
+          "type": "activate_node",
+          "nodeId": "F02-W2"
+        },
+        {
+          "type": "reveal_source",
+          "sourceIds": [
+            "MS1-S18",
+            "MS1-S22"
+          ]
+        },
+        {
+          "type": "spawn_agent",
+          "agentId": "AG-SOURCE"
+        },
+        {
+          "type": "update_ledger",
+          "evidenceRecordIds": [
+            "LED-F02-E1",
+            "LED-F02-E2"
+          ]
+        },
+        {
+          "type": "complete_node",
+          "nodeId": "F02-W2"
+        },
+        {
+          "type": "activate_node",
+          "nodeId": "F02-W3"
+        },
+        {
+          "type": "replan",
+          "replan": {
+            "reason": "Risk-based justification absent",
+            "attempt": 1,
+            "maxAttempts": 1,
+            "spawnedAgentIds": [
+              "AG-THEORY"
+            ],
+            "requestedEvidence": [
+              "OOD-risk derivation",
+              "alternative coefficient comparison"
+            ]
+          }
+        },
+        {
+          "type": "update_ledger",
+          "evidenceRecordIds": [
+            "LED-F02-E1",
+            "LED-F02-E2",
+            "LED-F02-G1",
+            "LED-F02-G2"
+          ]
+        },
+        {
+          "type": "verdict",
+          "status": "supported"
+        },
+        {
+          "type": "complete_node",
+          "nodeId": "F02-W3"
+        },
+        {
+          "type": "stop",
+          "reason": "Useful properties preserved; broader theory remains missing."
+        }
+      ],
+      "finalLedger": {
+        "for": [
+          {
+            "id": "LED-F02-E1",
+            "direction": "for",
+            "sourceIds": [
+              "MS1-S18",
+              "MS1-S22"
+            ],
+            "summary": "The appendix explicitly limits optimality and derives uniqueness only after selecting four boundary conditions and a bilinear family."
+          }
+        ],
+        "against": [
+          {
+            "id": "LED-F02-E2",
+            "direction": "against",
+            "sourceIds": [
+              "MS1-S22",
+              "MS1-S23"
+            ],
+            "summary": "The paper establishes monotonicity, 1-Lipschitz sensitivity, and supplies CKA evidence consistent with its interpretation."
+          }
+        ],
+        "gaps": [
+          {
+            "id": "LED-F02-G1",
+            "direction": "gap",
+            "sourceIds": [
+              "MS1-S11"
+            ],
+            "summary": "A theory connecting spectral statistics to ID/OOD risk."
+          },
+          {
+            "id": "LED-F02-G2",
+            "direction": "gap",
+            "sourceIds": [
+              "MS1-S11"
+            ],
+            "summary": "Comparison with alternative admissible coefficient families."
+          }
+        ]
+      },
+      "initialVerdict": "supported",
+      "limitations": [
+        "No new theory can be produced inside review."
+      ],
+      "counterfactualTestId": "CF-F02"
+    },
+    {
+      "findingId": "F03",
+      "agentIds": [
+        "AG-SOURCE"
+      ],
+      "workflowNodes": [
+        {
+          "id": "F03-W1",
+          "label": "Check main text",
+          "kind": "inspect",
+          "x": 36,
+          "y": 88
+        },
+        {
+          "id": "F03-W2",
+          "label": "Search appendices",
+          "kind": "inspect",
+          "x": 286,
+          "y": 88
+        },
+        {
+          "id": "F03-W3",
+          "label": "Withdraw categorical absence",
+          "kind": "verdict",
+          "x": 536,
+          "y": 88
+        }
+      ],
+      "workflowEdges": [
+        {
+          "id": "F03-X1",
+          "source": "F03-W1",
+          "target": "F03-W2",
+          "relation": "absence requires exhaustive search"
+        },
+        {
+          "id": "F03-X2",
+          "source": "F03-W2",
+          "target": "F03-W3",
+          "relation": "counter-evidence found"
+        }
+      ],
+      "events": [
+        {
+          "type": "message",
+          "text": "ConvNeXt and freevariance records refute the categorical absence allegation."
+        },
+        {
+          "type": "activate_node",
+          "nodeId": "F03-W1"
+        },
+        {
+          "type": "reveal_source",
+          "sourceIds": [
+            "MS1-S17",
+            "MS1-S18"
+          ]
+        },
+        {
+          "type": "complete_node",
+          "nodeId": "F03-W1"
+        },
+        {
+          "type": "activate_node",
+          "nodeId": "F03-W2"
+        },
+        {
+          "type": "reveal_source",
+          "sourceIds": [
+            "MS1-S24",
+            "MS1-S25"
+          ]
+        },
+        {
+          "type": "update_ledger",
+          "evidenceRecordIds": [
+            "LED-F03-E1",
+            "LED-F03-E2"
+          ]
+        },
+        {
+          "type": "complete_node",
+          "nodeId": "F03-W2"
+        },
+        {
+          "type": "activate_node",
+          "nodeId": "F03-W3"
+        },
+        {
+          "type": "update_ledger",
+          "evidenceRecordIds": [
+            "LED-F03-E1",
+            "LED-F03-E2",
+            "LED-F03-G1"
+          ]
+        },
+        {
+          "type": "verdict",
+          "status": "refuted"
+        },
+        {
+          "type": "complete_node",
+          "nodeId": "F03-W3"
+        },
+        {
+          "type": "stop",
+          "reason": "Direct counter-evidence located."
+        }
+      ],
+      "finalLedger": {
+        "for": [
+          {
+            "id": "LED-F03-E1",
+            "direction": "for",
+            "sourceIds": [
+              "MS1-S17",
+              "MS1-S18"
+            ],
+            "summary": "The main discussion calls R the only hyperparameter and acknowledges architecture/domain dependence."
+          }
+        ],
+        "against": [
+          {
+            "id": "LED-F03-E2",
+            "direction": "against",
+            "sourceIds": [
+              "MS1-S24",
+              "MS1-S25"
+            ],
+            "summary": "The appendix evaluates ConvNeXt and reports a freevariance variant alongside R=0.8."
+          }
+        ],
+        "gaps": [
+          {
+            "id": "LED-F03-G1",
+            "direction": "gap",
+            "sourceIds": [
+              "MS1-S17"
+            ],
+            "summary": "A clear definition and reproducible procedure for the briefly labeled freevariance variant."
+          }
+        ]
+      },
+      "initialVerdict": "refuted",
+      "limitations": [
+        "Automatic-selection details remain sparse."
+      ],
+      "counterfactualTestId": "CF-F03"
+    },
+    {
+      "findingId": "F04",
+      "agentIds": [
+        "AG-SCOPE"
+      ],
+      "workflowNodes": [
+        {
+          "id": "F04-W1",
+          "label": "Map benchmark roles",
+          "kind": "inspect",
+          "x": 36,
+          "y": 88
+        },
+        {
+          "id": "F04-W2",
+          "label": "Test claim scope",
+          "x": 286,
+          "y": 88
+        }
+      ],
+      "workflowEdges": [
+        {
+          "id": "F04-X1",
+          "source": "F04-W1",
+          "target": "F04-W2",
+          "relation": "compare labels"
+        }
+      ],
+      "events": [
+        {
+          "type": "message",
+          "text": "Point estimates remain valid; the OOD interpretation is narrowed."
+        },
+        {
+          "type": "activate_node",
+          "nodeId": "F04-W1"
+        },
+        {
+          "type": "reveal_source",
+          "sourceIds": [
+            "MS1-S14",
+            "MS1-S15"
+          ]
+        },
+        {
+          "type": "complete_node",
+          "nodeId": "F04-W1"
+        },
+        {
+          "type": "activate_node",
+          "nodeId": "F04-W2"
+        },
+        {
+          "type": "reveal_source",
+          "sourceIds": [
+            "MS1-S18"
+          ]
+        },
+        {
+          "type": "update_ledger",
+          "evidenceRecordIds": [
+            "LED-F04-E1",
+            "LED-F04-E2"
+          ]
+        },
+        {
+          "type": "update_ledger",
+          "evidenceRecordIds": [
+            "LED-F04-E1",
+            "LED-F04-E2",
+            "LED-F04-G1"
+          ]
+        },
+        {
+          "type": "verdict",
+          "status": "supported"
+        },
+        {
+          "type": "complete_node",
+          "nodeId": "F04-W2"
+        },
+        {
+          "type": "stop",
+          "reason": "Scope mismatch established without invalidating measurements."
+        }
+      ],
+      "finalLedger": {
+        "for": [
+          {
+            "id": "LED-F04-E1",
+            "direction": "for",
+            "sourceIds": [
+              "MS1-S14",
+              "MS1-S15"
+            ],
+            "summary": "The ID/OOD grouping mixes training overlap, task identity, and increased difficulty."
+          }
+        ],
+        "against": [
+          {
+            "id": "LED-F04-E2",
+            "direction": "against",
+            "sourceIds": [
+              "MS1-S14"
+            ],
+            "summary": "The reported results still show gains across several reasoning and multiple-choice benchmarks."
+          }
+        ],
+        "gaps": [
+          {
+            "id": "LED-F04-G1",
+            "direction": "gap",
+            "sourceIds": [
+              "MS1-S14"
+            ],
+            "summary": "Controlled linguistic, domain, or corruption shifts for the language model."
+          }
+        ]
+      },
+      "initialVerdict": "supported",
+      "limitations": [
+        "No raw dataset audit."
+      ],
+      "counterfactualTestId": "CF-F04"
+    },
+    {
+      "findingId": "F05",
+      "agentIds": [
+        "AG-SCOPE",
+        "AG-SOURCE"
+      ],
+      "workflowNodes": [
+        {
+          "id": "F05-W1",
+          "label": "Trace efficiency claim",
+          "kind": "inspect",
+          "x": 36,
+          "y": 88
+        },
+        {
+          "id": "F05-W2",
+          "label": "Search scale evidence",
+          "kind": "inspect",
+          "x": 286,
+          "y": 88
+        },
+        {
+          "id": "F05-W3",
+          "label": "Stop at evidence gap",
+          "subtitle": "Bounded stop",
+          "kind": "verdict",
+          "x": 536,
+          "y": 88
+        }
+      ],
+      "workflowEdges": [
+        {
+          "id": "F05-X1",
+          "source": "F05-W1",
+          "target": "F05-W2",
+          "relation": "request measurements"
+        },
+        {
+          "id": "F05-X2",
+          "source": "F05-W2",
+          "target": "F05-W3",
+          "relation": "not present"
+        }
+      ],
+      "events": [
+        {
+          "type": "message",
+          "text": "No multi-billion-parameter resource profile exists in the supplied baseline."
+        },
+        {
+          "type": "activate_node",
+          "nodeId": "F05-W1"
+        },
+        {
+          "type": "reveal_source",
+          "sourceIds": [
+            "MS1-S01",
+            "MS1-S03"
+          ]
+        },
+        {
+          "type": "complete_node",
+          "nodeId": "F05-W1"
+        },
+        {
+          "type": "activate_node",
+          "nodeId": "F05-W2"
+        },
+        {
+          "type": "reveal_source",
+          "sourceIds": [
+            "MS1-S14",
+            "MS1-S18"
+          ]
+        },
+        {
+          "type": "spawn_agent",
+          "agentId": "AG-SOURCE"
+        },
+        {
+          "type": "update_ledger",
+          "evidenceRecordIds": [
+            "LED-F05-E1",
+            "LED-F05-E2"
+          ]
+        },
+        {
+          "type": "complete_node",
+          "nodeId": "F05-W2"
+        },
+        {
+          "type": "activate_node",
+          "nodeId": "F05-W3"
+        },
+        {
+          "type": "update_ledger",
+          "evidenceRecordIds": [
+            "LED-F05-E1",
+            "LED-F05-E2",
+            "LED-F05-G1",
+            "LED-F05-G2"
+          ]
+        },
+        {
+          "type": "verdict",
+          "status": "supported"
+        },
+        {
+          "type": "complete_node",
+          "nodeId": "F05-W3"
+        },
+        {
+          "type": "stop",
+          "reason": "Required experiment is absent; failure at scale is not inferred."
+        }
+      ],
+      "finalLedger": {
+        "for": [
+          {
+            "id": "LED-F05-E1",
+            "direction": "for",
+            "sourceIds": [
+              "MS1-S01",
+              "MS1-S14",
+              "MS1-S18"
+            ],
+            "summary": "The largest language experiment uses Qwen3-0.6B and the supplied PDF contains no measured wall-clock or memory table."
+          }
+        ],
+        "against": [
+          {
+            "id": "LED-F05-E2",
+            "direction": "against",
+            "sourceIds": [
+              "MS1-S01",
+              "MS1-S03"
+            ],
+            "summary": "Using one fine-tuned checkpoint plainly removes the need to train and retain dozens of soup constituents."
+          }
+        ],
+        "gaps": [
+          {
+            "id": "LED-F05-G1",
+            "direction": "gap",
+            "sourceIds": [
+              "MS1-S01"
+            ],
+            "summary": "2–7B+ quality experiment."
+          },
+          {
+            "id": "LED-F05-G2",
+            "direction": "gap",
+            "sourceIds": [
+              "MS1-S01"
+            ],
+            "summary": "Measured SVD runtime, peak memory, storage, and comparison protocol."
+          }
+        ]
+      },
+      "initialVerdict": "supported",
+      "limitations": [
+        "No hardware profiling."
+      ],
+      "counterfactualTestId": "CF-F05"
+    },
+    {
+      "findingId": "F06",
+      "agentIds": [
+        "AG-NUM",
+        "AG-SOURCE"
+      ],
+      "workflowNodes": [
+        {
+          "id": "F06-W1",
+          "label": "Read reported count",
+          "kind": "inspect",
+          "x": 36,
+          "y": 88
+        },
+        {
+          "id": "F06-W2",
+          "label": "Compute n choose 2",
+          "x": 286,
+          "y": 88
+        },
+        {
+          "id": "F06-W3",
+          "label": "Search exclusion note",
+          "kind": "inspect",
+          "x": 536,
+          "y": 88
+        }
+      ],
+      "workflowEdges": [
+        {
+          "id": "F06-X1",
+          "source": "F06-W1",
+          "target": "F06-W2",
+          "relation": "recompute"
+        },
+        {
+          "id": "F06-X2",
+          "source": "F06-W2",
+          "target": "F06-W3",
+          "relation": "difference = 6"
+        }
+      ],
+      "events": [
+        {
+          "type": "message",
+          "text": "70 × 69 ÷ 2 = 2,415; reported 2,409; difference 6."
+        },
+        {
+          "type": "activate_node",
+          "nodeId": "F06-W1"
+        },
+        {
+          "type": "reveal_source",
+          "sourceIds": [
+            "MS1-S06"
+          ]
+        },
+        {
+          "type": "complete_node",
+          "nodeId": "F06-W1"
+        },
+        {
+          "type": "activate_node",
+          "nodeId": "F06-W2"
+        },
+        {
+          "type": "spawn_agent",
+          "agentId": "AG-SOURCE"
+        },
+        {
+          "type": "update_ledger",
+          "evidenceRecordIds": [
+            "LED-F06-E1"
+          ]
+        },
+        {
+          "type": "complete_node",
+          "nodeId": "F06-W2"
+        },
+        {
+          "type": "activate_node",
+          "nodeId": "F06-W3"
+        },
+        {
+          "type": "update_ledger",
+          "evidenceRecordIds": [
+            "LED-F06-E1",
+            "LED-F06-G1"
+          ]
+        },
+        {
+          "type": "verdict",
+          "status": "verified"
+        },
+        {
+          "type": "complete_node",
+          "nodeId": "F06-W3"
+        },
+        {
+          "type": "stop",
+          "reason": "No exclusion disclosure found."
+        }
+      ],
+      "finalLedger": {
+        "for": [
+          {
+            "id": "LED-F06-E1",
+            "direction": "for",
+            "sourceIds": [
+              "MS1-S06"
+            ],
+            "summary": "The figure reports 2,409 combinations; deterministic calculation gives 70 × 69 ÷ 2 = 2,415.",
+            "toolId": "deterministic-calculator"
+          }
+        ],
+        "against": [],
+        "gaps": [
+          {
+            "id": "LED-F06-G1",
+            "direction": "gap",
+            "sourceIds": [
+              "MS1-S06"
+            ],
+            "summary": "Identity of the six excluded pairs and whether exclusion changes the summary."
+          }
+        ]
+      },
+      "initialVerdict": "verified",
+      "limitations": [
+        "Reason for exclusion is unknown."
+      ],
+      "counterfactualTestId": "CF-F06"
+    },
+    {
+      "findingId": "F07",
+      "agentIds": [
+        "AG-NUM",
+        "AG-SOURCE"
+      ],
+      "workflowNodes": [
+        {
+          "id": "F07-W1",
+          "label": "Compute point-estimate gap",
+          "x": 36,
+          "y": 88
+        },
+        {
+          "id": "F07-W2",
+          "label": "Search uncertainty",
+          "kind": "inspect",
+          "x": 286,
+          "y": 88
+        },
+        {
+          "id": "F07-W3",
+          "label": "Preserve weak-model gains",
+          "x": 536,
+          "y": 88
+        }
+      ],
+      "workflowEdges": [
+        {
+          "id": "F07-X1",
+          "source": "F07-W1",
+          "target": "F07-W2",
+          "relation": "assess reliability"
+        },
+        {
+          "id": "F07-X2",
+          "source": "F07-W2",
+          "target": "F07-W3",
+          "relation": "bound conclusion"
+        }
+      ],
+      "events": [
+        {
+          "type": "message",
+          "text": "Small strong-checkpoint gains lack uncertainty; large weak-checkpoint gains remain credited."
+        },
+        {
+          "type": "activate_node",
+          "nodeId": "F07-W1"
+        },
+        {
+          "type": "reveal_source",
+          "sourceIds": [
+            "MS1-S13",
+            "MS1-S20"
+          ]
+        },
+        {
+          "type": "complete_node",
+          "nodeId": "F07-W1"
+        },
+        {
+          "type": "activate_node",
+          "nodeId": "F07-W2"
+        },
+        {
+          "type": "reveal_source",
+          "sourceIds": [
+            "MS1-S26"
+          ]
+        },
+        {
+          "type": "spawn_agent",
+          "agentId": "AG-SOURCE"
+        },
+        {
+          "type": "update_ledger",
+          "evidenceRecordIds": [
+            "LED-F07-E1",
+            "LED-F07-E2"
+          ]
+        },
+        {
+          "type": "complete_node",
+          "nodeId": "F07-W2"
+        },
+        {
+          "type": "activate_node",
+          "nodeId": "F07-W3"
+        },
+        {
+          "type": "update_ledger",
+          "evidenceRecordIds": [
+            "LED-F07-E1",
+            "LED-F07-E2",
+            "LED-F07-G1",
+            "LED-F07-G2"
+          ]
+        },
+        {
+          "type": "verdict",
+          "status": "supported"
+        },
+        {
+          "type": "complete_node",
+          "nodeId": "F07-W3"
+        },
+        {
+          "type": "stop",
+          "reason": "Statistical qualification is missing, not the point estimates."
+        }
+      ],
+      "finalLedger": {
+        "for": [
+          {
+            "id": "LED-F07-E1",
+            "direction": "for",
+            "sourceIds": [
+              "MS1-S13",
+              "MS1-S20"
+            ],
+            "summary": "The best-OOD gain is 0.93 percentage points and no standard deviations or confidence intervals are reported."
+          }
+        ],
+        "against": [
+          {
+            "id": "LED-F07-E2",
+            "direction": "against",
+            "sourceIds": [
+              "MS1-S13",
+              "MS1-S26"
+            ],
+            "summary": "Weak checkpoints show much larger recovery and Figure 12 visualizes behavior across all 70 checkpoints."
+          }
+        ],
+        "gaps": [
+          {
+            "id": "LED-F07-G1",
+            "direction": "gap",
+            "sourceIds": [
+              "MS1-S13"
+            ],
+            "summary": "Run-to-run variability or uncertainty intervals."
+          },
+          {
+            "id": "LED-F07-G2",
+            "direction": "gap",
+            "sourceIds": [
+              "MS1-S13"
+            ],
+            "summary": "Aggregate effect-size statistics over the 70 checkpoints."
+          }
+        ]
+      },
+      "initialVerdict": "supported",
+      "limitations": [
+        "No access to repeated runs."
+      ],
+      "counterfactualTestId": "CF-F07"
+    },
+    {
+      "findingId": "F08",
+      "agentIds": [
+        "AG-THEORY",
+        "AG-SOURCE"
+      ],
+      "workflowNodes": [
+        {
+          "id": "F08-W1",
+          "label": "Resolve definition",
+          "kind": "inspect",
+          "x": 36,
+          "y": 88
+        },
+        {
+          "id": "F08-W2",
+          "label": "Compare semantic claims",
+          "kind": "inspect",
+          "x": 286,
+          "y": 88
+        },
+        {
+          "id": "F08-W3",
+          "label": "Bound verdict",
+          "kind": "verdict",
+          "x": 536,
+          "y": 88
+        }
+      ],
+      "workflowEdges": [
+        {
+          "id": "F08-X1",
+          "source": "F08-W1",
+          "target": "F08-W2",
+          "relation": "identity established"
+        },
+        {
+          "id": "F08-X2",
+          "source": "F08-W2",
+          "target": "F08-W3",
+          "relation": "interpretation exceeds identity"
+        }
+      ],
+      "events": [
+        {
+          "type": "message",
+          "text": "Appendix C defines a residual-energy fraction; no vector-pair cosine defining pretrained alignment is present."
+        },
+        {
+          "type": "activate_node",
+          "nodeId": "F08-W1"
+        },
+        {
+          "type": "reveal_source",
+          "sourceIds": [
+            "MS1-S12",
+            "MS1-S23"
+          ]
+        },
+        {
+          "type": "complete_node",
+          "nodeId": "F08-W1"
+        },
+        {
+          "type": "activate_node",
+          "nodeId": "F08-W2"
+        },
+        {
+          "type": "reveal_source",
+          "sourceIds": [
+            "MS1-S28"
+          ]
+        },
+        {
+          "type": "spawn_agent",
+          "agentId": "AG-SOURCE"
+        },
+        {
+          "type": "update_ledger",
+          "evidenceRecordIds": [
+            "LED-F08-E1",
+            "LED-F08-E2",
+            "LED-F08-E3"
+          ]
+        },
+        {
+          "type": "complete_node",
+          "nodeId": "F08-W2"
+        },
+        {
+          "type": "activate_node",
+          "nodeId": "F08-W3"
+        },
+        {
+          "type": "update_ledger",
+          "evidenceRecordIds": [
+            "LED-F08-E1",
+            "LED-F08-E2",
+            "LED-F08-E3",
+            "LED-F08-G1",
+            "LED-F08-G2"
+          ]
+        },
+        {
+          "type": "verdict",
+          "status": "verified"
+        },
+        {
+          "type": "complete_node",
+          "nodeId": "F08-W3"
+        },
+        {
+          "type": "stop",
+          "reason": "Semantic mismatch verified while empirical CKA evidence is preserved."
+        }
+      ],
+      "finalLedger": {
+        "for": [
+          {
+            "id": "LED-F08-E1",
+            "direction": "for",
+            "sourceIds": [
+              "MS1-S28"
+            ],
+            "summary": "Appendix C explicitly derives cosine-squared alpha as 1 - P_k, the fraction of update energy outside the retained subspace."
+          },
+          {
+            "id": "LED-F08-E2",
+            "direction": "for",
+            "sourceIds": [
+              "MS1-S12",
+              "MS1-S23"
+            ],
+            "summary": "The prose nevertheless describes the quantity as alignment and as a pretrained-preservation signal without defining a cosine with pretrained parameters or representations."
+          }
+        ],
+        "against": [
+          {
+            "id": "LED-F08-E3",
+            "direction": "against",
+            "sourceIds": [
+              "MS1-S23"
+            ],
+            "summary": "The CKA analysis supplies empirical evidence that models retaining more low-energy structure can remain closer to pretrained representations on selected inputs."
+          }
+        ],
+        "gaps": [
+          {
+            "id": "LED-F08-G1",
+            "direction": "gap",
+            "sourceIds": [
+              "MS1-S12"
+            ],
+            "summary": "A genuine geometric alignment definition involving two specified vectors."
+          },
+          {
+            "id": "LED-F08-G2",
+            "direction": "gap",
+            "sourceIds": [
+              "MS1-S12"
+            ],
+            "summary": "Evidence that residual-energy share predicts representation preservation beyond the selected CKA cases."
+          }
+        ]
+      },
+      "initialVerdict": "verified",
+      "limitations": [
+        "Algorithm effectiveness is not adjudicated by this definition check."
+      ],
+      "counterfactualTestId": "CF-F08"
+    },
+    {
+      "findingId": "F09",
+      "agentIds": [
+        "AG-THEORY",
+        "AG-NUM"
+      ],
+      "workflowNodes": [
+        {
+          "id": "F09-W1",
+          "label": "Substitute Appendix C identity",
+          "kind": "inspect",
+          "x": 36,
+          "y": 88
+        },
+        {
+          "id": "F09-W2",
+          "label": "Inspect component ablation",
+          "x": 286,
+          "y": 88
+        },
+        {
+          "id": "F09-W3",
+          "label": "Request controlled dependence analysis",
+          "subtitle": "Bounded stop",
+          "x": 536,
+          "y": 88
+        }
+      ],
+      "workflowEdges": [
+        {
+          "id": "F09-X1",
+          "source": "F09-W1",
+          "target": "F09-W2",
+          "relation": "dependency found"
+        },
+        {
+          "id": "F09-X2",
+          "source": "F09-W2",
+          "target": "F09-W3",
+          "relation": "incremental value unresolved"
+        }
+      ],
+      "events": [
+        {
+          "type": "message",
+          "text": "Dependence is established; complete redundancy is not."
+        },
+        {
+          "type": "activate_node",
+          "nodeId": "F09-W1"
+        },
+        {
+          "type": "reveal_source",
+          "sourceIds": [
+            "MS1-S10",
+            "MS1-S17"
+          ]
+        },
+        {
+          "type": "complete_node",
+          "nodeId": "F09-W1"
+        },
+        {
+          "type": "activate_node",
+          "nodeId": "F09-W2"
+        },
+        {
+          "type": "reveal_source",
+          "sourceIds": [
+            "MS1-S28"
+          ]
+        },
+        {
+          "type": "spawn_agent",
+          "agentId": "AG-NUM"
+        },
+        {
+          "type": "update_ledger",
+          "evidenceRecordIds": [
+            "LED-F09-E1",
+            "LED-F09-E2"
+          ]
+        },
+        {
+          "type": "complete_node",
+          "nodeId": "F09-W2"
+        },
+        {
+          "type": "activate_node",
+          "nodeId": "F09-W3"
+        },
+        {
+          "type": "update_ledger",
+          "evidenceRecordIds": [
+            "LED-F09-E1",
+            "LED-F09-E2",
+            "LED-F09-G1",
+            "LED-F09-G2"
+          ]
+        },
+        {
+          "type": "verdict",
+          "status": "supported"
+        },
+        {
+          "type": "complete_node",
+          "nodeId": "F09-W3"
+        },
+        {
+          "type": "stop",
+          "reason": "Correlation and controlled predictive analysis are unavailable."
+        }
+      ],
+      "finalLedger": {
+        "for": [
+          {
+            "id": "LED-F09-E1",
+            "direction": "for",
+            "sourceIds": [
+              "MS1-S28"
+            ],
+            "summary": "Because cosine-squared alpha = 1 - P_k and P_k is selected using R, the value is tightly constrained by the threshold and spectrum."
+          }
+        ],
+        "against": [
+          {
+            "id": "LED-F09-E2",
+            "direction": "against",
+            "sourceIds": [
+              "MS1-S17"
+            ],
+            "summary": "The component ablation reports different empirical behavior when using rho alone versus cosine alpha alone."
+          }
+        ],
+        "gaps": [
+          {
+            "id": "LED-F09-G1",
+            "direction": "gap",
+            "sourceIds": [
+              "MS1-S10"
+            ],
+            "summary": "Layer-wise correlations among R, retained rank, rho, and cosine alpha."
+          },
+          {
+            "id": "LED-F09-G2",
+            "direction": "gap",
+            "sourceIds": [
+              "MS1-S10"
+            ],
+            "summary": "Incremental predictive or ablation evidence controlling for update magnitude."
+          }
+        ]
+      },
+      "initialVerdict": "supported",
+      "limitations": [
+        "No layer-level raw spectra."
+      ],
+      "counterfactualTestId": "CF-F09"
+    },
+    {
+      "findingId": "F10",
+      "agentIds": [
+        "AG-THEORY",
+        "AG-NUM"
+      ],
+      "workflowNodes": [
+        {
+          "id": "F10-W1",
+          "label": "Compare coefficient baselines",
+          "kind": "inspect",
+          "x": 36,
+          "y": 88
+        },
+        {
+          "id": "F10-W2",
+          "label": "Trace shrinkage alternative",
+          "kind": "inspect",
+          "x": 286,
+          "y": 88
+        },
+        {
+          "id": "F10-W3",
+          "label": "Request matched control",
+          "subtitle": "Bounded stop",
+          "x": 536,
+          "y": 88
+        }
+      ],
+      "workflowEdges": [
+        {
+          "id": "F10-X1",
+          "source": "F10-W1",
+          "target": "F10-W2",
+          "relation": "sum-to-one constraint"
+        },
+        {
+          "id": "F10-X2",
+          "source": "F10-W2",
+          "target": "F10-W3",
+          "relation": "causal test missing"
+        }
+      ],
+      "events": [
+        {
+          "type": "message",
+          "text": "A norm-matched layer-wise scalar control is required to distinguish spectral selection from shrinkage."
+        },
+        {
+          "type": "activate_node",
+          "nodeId": "F10-W1"
+        },
+        {
+          "type": "reveal_source",
+          "sourceIds": [
+            "MS1-S08",
+            "MS1-S11"
+          ]
+        },
+        {
+          "type": "complete_node",
+          "nodeId": "F10-W1"
+        },
+        {
+          "type": "activate_node",
+          "nodeId": "F10-W2"
+        },
+        {
+          "type": "reveal_source",
+          "sourceIds": [
+            "MS1-S16",
+            "MS1-S29"
+          ]
+        },
+        {
+          "type": "spawn_agent",
+          "agentId": "AG-NUM"
+        },
+        {
+          "type": "update_ledger",
+          "evidenceRecordIds": [
+            "LED-F10-E1",
+            "LED-F10-E2",
+            "LED-F10-G1"
+          ]
+        },
+        {
+          "type": "complete_node",
+          "nodeId": "F10-W2"
+        },
+        {
+          "type": "activate_node",
+          "nodeId": "F10-W3"
+        },
+        {
+          "type": "update_ledger",
+          "evidenceRecordIds": [
+            "LED-F10-E1",
+            "LED-F10-E2",
+            "LED-F10-G1",
+            "LED-F10-G2",
+            "LED-F10-G3"
+          ]
+        },
+        {
+          "type": "verdict",
+          "status": "supported"
+        },
+        {
+          "type": "complete_node",
+          "nodeId": "F10-W3"
+        },
+        {
+          "type": "stop",
+          "reason": "Alternative explanation is live but not proven sufficient."
+        }
+      ],
+      "finalLedger": {
+        "for": [
+          {
+            "id": "LED-F10-E1",
+            "direction": "for",
+            "sourceIds": [
+              "MS1-S29"
+            ],
+            "summary": "The coefficients sum to one, whereas the unedited fine-tuned update uses coefficient one on both high- and low-energy components."
+          }
+        ],
+        "against": [
+          {
+            "id": "LED-F10-E2",
+            "direction": "against",
+            "sourceIds": [
+              "MS1-S16",
+              "MS1-S17"
+            ],
+            "summary": "Wise-FT and component ablations provide partial evidence that uniform interpolation and individual signals behave differently."
+          }
+        ],
+        "gaps": [
+          {
+            "id": "LED-F10-G1",
+            "direction": "gap",
+            "sourceIds": [
+              "MS1-S08"
+            ],
+            "summary": "Layer-wise norm-matched scalar shrinkage baseline."
+          },
+          {
+            "id": "LED-F10-G2",
+            "direction": "gap",
+            "sourceIds": [
+              "MS1-S08"
+            ],
+            "summary": "Ablation allowing high- and low-energy coefficients to vary independently."
+          },
+          {
+            "id": "LED-F10-G3",
+            "direction": "gap",
+            "sourceIds": [
+              "MS1-S08"
+            ],
+            "summary": "Update-norm statistics by layer."
+          }
+        ]
+      },
+      "initialVerdict": "supported",
+      "limitations": [
+        "No checkpoint access for matched ablation."
+      ],
+      "counterfactualTestId": "CF-F10"
+    },
+    {
+      "findingId": "F11",
+      "agentIds": [
+        "AG-THEORY",
+        "AG-SOURCE"
+      ],
+      "workflowNodes": [
+        {
+          "id": "F11-W1",
+          "label": "Map Section 3 objects",
+          "kind": "inspect",
+          "x": 36,
+          "y": 88
+        },
+        {
+          "id": "F11-W2",
+          "label": "Map Section 4 objects",
+          "kind": "inspect",
+          "x": 286,
+          "y": 88
+        },
+        {
+          "id": "F11-W3",
+          "label": "Test implication",
+          "x": 536,
+          "y": 88
+        }
+      ],
+      "workflowEdges": [
+        {
+          "id": "F11-X1",
+          "source": "F11-W1",
+          "target": "F11-W2",
+          "relation": "compare quantities"
+        },
+        {
+          "id": "F11-X2",
+          "source": "F11-W2",
+          "target": "F11-W3",
+          "relation": "mapping absent"
+        }
+      ],
+      "events": [
+        {
+          "type": "message",
+          "text": "Pairwise task-vector alignment and single-vector residual energy are different objects; the bridge remains motivational."
+        },
+        {
+          "type": "activate_node",
+          "nodeId": "F11-W1"
+        },
+        {
+          "type": "reveal_source",
+          "sourceIds": [
+            "MS1-S05",
+            "MS1-S07"
+          ]
+        },
+        {
+          "type": "complete_node",
+          "nodeId": "F11-W1"
+        },
+        {
+          "type": "activate_node",
+          "nodeId": "F11-W2"
+        },
+        {
+          "type": "reveal_source",
+          "sourceIds": [
+            "MS1-S08",
+            "MS1-S12"
+          ]
+        },
+        {
+          "type": "spawn_agent",
+          "agentId": "AG-SOURCE"
+        },
+        {
+          "type": "update_ledger",
+          "evidenceRecordIds": [
+            "LED-F11-E1",
+            "LED-F11-E2"
+          ]
+        },
+        {
+          "type": "complete_node",
+          "nodeId": "F11-W2"
+        },
+        {
+          "type": "activate_node",
+          "nodeId": "F11-W3"
+        },
+        {
+          "type": "update_ledger",
+          "evidenceRecordIds": [
+            "LED-F11-E1",
+            "LED-F11-E2",
+            "LED-F11-G1",
+            "LED-F11-G2"
+          ]
+        },
+        {
+          "type": "verdict",
+          "status": "supported"
+        },
+        {
+          "type": "complete_node",
+          "nodeId": "F11-W3"
+        },
+        {
+          "type": "stop",
+          "reason": "Broad intuition credited; stronger derivation not located."
+        }
+      ],
+      "finalLedger": {
+        "for": [
+          {
+            "id": "LED-F11-E1",
+            "direction": "for",
+            "sourceIds": [
+              "MS1-S07",
+              "MS1-S30"
+            ],
+            "summary": "The diagnostic uses cosine similarity between two task vectors, but the proposed method replaces that relation with energy statistics of one task vector."
+          }
+        ],
+        "against": [
+          {
+            "id": "LED-F11-E2",
+            "direction": "against",
+            "sourceIds": [
+              "MS1-S05",
+              "MS1-S08"
+            ],
+            "summary": "Both analyses support the broader intuition that directional structure in fine-tuning updates matters for generalization."
+          }
+        ],
+        "gaps": [
+          {
+            "id": "LED-F11-G1",
+            "direction": "gap",
+            "sourceIds": [
+              "MS1-S05"
+            ],
+            "summary": "Cross-check that single-model spectral statistics predict pairwise merge success or soup-like directions."
+          },
+          {
+            "id": "LED-F11-G2",
+            "direction": "gap",
+            "sourceIds": [
+              "MS1-S05"
+            ],
+            "summary": "A narrower statement separating inspiration from derivation."
+          }
+        ]
+      },
+      "initialVerdict": "supported",
+      "limitations": [
+        "No external experiment or raw checkpoint analysis."
+      ],
+      "counterfactualTestId": "CF-F11"
+    },
+    {
+      "findingId": "F12",
+      "agentIds": [
+        "AG-NUM",
+        "AG-SOURCE"
+      ],
+      "workflowNodes": [
+        {
+          "id": "F12-W1",
+          "label": "Locate narrative claim",
+          "kind": "inspect",
+          "x": 36,
+          "y": 88
+        },
+        {
+          "id": "F12-W2",
+          "label": "Recompute table deltas",
+          "x": 286,
+          "y": 88
+        },
+        {
+          "id": "F12-W3",
+          "label": "Search named baseline",
+          "kind": "inspect",
+          "x": 536,
+          "y": 88
+        }
+      ],
+      "workflowEdges": [
+        {
+          "id": "F12-X1",
+          "source": "F12-W1",
+          "target": "F12-W2",
+          "relation": "verify magnitude"
+        },
+        {
+          "id": "F12-X2",
+          "source": "F12-W2",
+          "target": "F12-W3",
+          "relation": "values do not reconcile"
+        }
+      ],
+      "events": [
+        {
+          "type": "message",
+          "text": "The stated +9.2 values cannot be reproduced from the identified within-variant Table 2 comparisons."
+        },
+        {
+          "type": "activate_node",
+          "nodeId": "F12-W1"
+        },
+        {
+          "type": "reveal_source",
+          "sourceIds": [
+            "MS1-S14",
+            "MS1-S27"
+          ]
+        },
+        {
+          "type": "complete_node",
+          "nodeId": "F12-W1"
+        },
+        {
+          "type": "activate_node",
+          "nodeId": "F12-W2"
+        },
+        {
+          "type": "spawn_agent",
+          "agentId": "AG-SOURCE"
+        },
+        {
+          "type": "update_ledger",
+          "evidenceRecordIds": [
+            "LED-F12-E1",
+            "LED-F12-G1"
+          ]
+        },
+        {
+          "type": "complete_node",
+          "nodeId": "F12-W2"
+        },
+        {
+          "type": "activate_node",
+          "nodeId": "F12-W3"
+        },
+        {
+          "type": "update_ledger",
+          "evidenceRecordIds": [
+            "LED-F12-E1",
+            "LED-F12-G1",
+            "LED-F12-G2"
+          ]
+        },
+        {
+          "type": "verdict",
+          "status": "verified"
+        },
+        {
+          "type": "complete_node",
+          "nodeId": "F12-W3"
+        },
+        {
+          "type": "stop",
+          "reason": "No calculation provenance for +9.2 is supplied."
+        }
+      ],
+      "finalLedger": {
+        "for": [
+          {
+            "id": "LED-F12-E1",
+            "direction": "for",
+            "sourceIds": [
+              "MS1-S14",
+              "MS1-S27"
+            ],
+            "summary": "The visible within-variant changes are approximately 0.5–1.5 points, and the prose does not specify a different calculation yielding +9.2 for both benchmarks.",
+            "toolId": "table-difference-auditor"
+          }
+        ],
+        "against": [],
+        "gaps": [
+          {
+            "id": "LED-F12-G1",
+            "direction": "gap",
+            "sourceIds": [
+              "MS1-S14"
+            ],
+            "summary": "Exact provenance for each +9.2 value."
+          },
+          {
+            "id": "LED-F12-G2",
+            "direction": "gap",
+            "sourceIds": [
+              "MS1-S14"
+            ],
+            "summary": "A corrected effect-size statement if the claim is erroneous."
+          }
+        ]
+      },
+      "initialVerdict": "verified",
+      "limitations": [
+        "Final correction should use source table data rather than extracted text alone."
+      ],
+      "counterfactualTestId": "CF-F12"
+    }
+  ],
+  "counterfactualTests": [
+    {
+      "id": "CF-F01",
+      "findingId": "F01",
+      "baseline": {
+        "label": "Paper-only positioning",
+        "description": "Single-checkpoint novelty is explained, but closest-operation differentiation is incomplete.",
+        "changedSourceIds": [],
+        "reviewerResponse": "Human/external adjudication required."
+      },
+      "targeted": {
+        "label": "Operation-level comparison added",
+        "description": "Add verified closest-work taxonomy and controlled comparisons.",
+        "changedSourceIds": [
+          "MS1-S04"
+        ],
+        "reviewerResponse": "Concern may weaken if a distinct capability is demonstrated."
+      },
+      "control": {
+        "label": "Abstract reworded",
+        "description": "Change promotional wording only.",
+        "changedSourceIds": [
+          "MS1-S01"
+        ],
+        "reviewerResponse": "Concern remains."
+      },
+      "expectedBehavior": "Only substantive closest-work evidence changes the verdict.",
+      "result": "inconclusive",
+      "explanation": "External evidence is unavailable."
+    },
+    {
+      "id": "CF-F02",
+      "findingId": "F02",
+      "baseline": {
+        "label": "Boundary-condition derivation",
+        "description": "Bilinear uniqueness and sensitivity are present.",
+        "changedSourceIds": [],
+        "reviewerResponse": "Concern retained."
+      },
+      "targeted": {
+        "label": "Risk theory added",
+        "description": "Connect the coefficient to ID/OOD risk and compare alternatives.",
+        "changedSourceIds": [
+          "MS1-S22"
+        ],
+        "reviewerResponse": "Concern would weaken if validated."
+      },
+      "control": {
+        "label": "Equation prose edited",
+        "description": "Rephrase the same derivation.",
+        "changedSourceIds": [
+          "MS1-S11"
+        ],
+        "reviewerResponse": "Concern remains."
+      },
+      "expectedBehavior": "A substantive theory matters; rewording does not.",
+      "result": "inconclusive",
+      "explanation": "The targeted theory is not available."
+    },
+    {
+      "id": "CF-F03",
+      "findingId": "F03",
+      "baseline": {
+        "label": "Full supplied PDF",
+        "description": "ConvNeXt and freevariance appendix evidence is present.",
+        "changedSourceIds": [],
+        "reviewerResponse": "Categorical absence is false."
+      },
+      "targeted": {
+        "label": "Relevant appendix hidden",
+        "description": "Hide ConvNeXt and freevariance records.",
+        "changedSourceIds": [
+          "MS1-S24",
+          "MS1-S25"
+        ],
+        "reviewerResponse": "Absence allegation becomes plausible."
+      },
+      "control": {
+        "label": "Qwen table hidden",
+        "description": "Hide an unrelated language result.",
+        "changedSourceIds": [
+          "MS1-S14"
+        ],
+        "reviewerResponse": "Absence allegation remains false."
+      },
+      "expectedBehavior": "Verdict flips only when critique-relevant evidence is removed.",
+      "result": "passed",
+      "explanation": "The refutation is specifically supported by appendix evidence."
+    },
+    {
+      "id": "CF-F04",
+      "findingId": "F04",
+      "baseline": {
+        "label": "Broad OOD wording",
+        "description": "Difficulty and task differences are labeled OOD.",
+        "changedSourceIds": [],
+        "reviewerResponse": "Scope concern retained."
+      },
+      "targeted": {
+        "label": "Claim narrowed",
+        "description": "Describe the evidence as cross-benchmark generalization.",
+        "changedSourceIds": [
+          "MS1-S15",
+          "MS1-S19"
+        ],
+        "reviewerResponse": "Scope concern resolved."
+      },
+      "control": {
+        "label": "Table formatting changed",
+        "description": "Values and benchmark roles stay fixed.",
+        "changedSourceIds": [
+          "MS1-S14"
+        ],
+        "reviewerResponse": "Concern remains."
+      },
+      "expectedBehavior": "Claim scope, not formatting, controls the concern.",
+      "result": "passed",
+      "explanation": "The critique is sensitive to the relevant interpretation."
+    },
+    {
+      "id": "CF-F05",
+      "findingId": "F05",
+      "baseline": {
+        "label": "0.6B maximum evaluated language model",
+        "description": "No resource table is supplied.",
+        "changedSourceIds": [],
+        "reviewerResponse": "Scale evidence gap retained."
+      },
+      "targeted": {
+        "label": "Large-scale profile added",
+        "description": "Add quality, time, memory, and storage at 2–7B+ scale.",
+        "changedSourceIds": [
+          "MS1-S18"
+        ],
+        "reviewerResponse": "Concern may resolve if the advantage is demonstrated."
+      },
+      "control": {
+        "label": "Motivation expanded",
+        "description": "Add prose about storage without measurements.",
+        "changedSourceIds": [
+          "MS1-S01"
+        ],
+        "reviewerResponse": "Concern remains."
+      },
+      "expectedBehavior": "Measurements change the verdict; motivation prose does not.",
+      "result": "inconclusive",
+      "explanation": "The required experiment is unavailable."
+    },
+    {
+      "id": "CF-F06",
+      "findingId": "F06",
+      "baseline": {
+        "label": "Undisclosed 2,409 count",
+        "description": "Six of 2,415 possible pairs are unexplained.",
+        "changedSourceIds": [],
+        "reviewerResponse": "Reporting discrepancy verified."
+      },
+      "targeted": {
+        "label": "Six exclusions disclosed",
+        "description": "Name excluded pairs and show their effect.",
+        "changedSourceIds": [
+          "MS1-S06"
+        ],
+        "reviewerResponse": "Reporting concern resolved if complete."
+      },
+      "control": {
+        "label": "Figure colors changed",
+        "description": "Count and disclosure stay unchanged.",
+        "changedSourceIds": [
+          "MS1-S06"
+        ],
+        "reviewerResponse": "Concern remains."
+      },
+      "expectedBehavior": "Only the exclusion disclosure repairs the issue.",
+      "result": "passed",
+      "explanation": "The arithmetic concern is specific and falsifiable."
+    },
+    {
+      "id": "CF-F07",
+      "findingId": "F07",
+      "baseline": {
+        "label": "Point estimates only",
+        "description": "No uncertainty accompanies small strong-checkpoint gains.",
+        "changedSourceIds": [],
+        "reviewerResponse": "Uncertainty concern retained."
+      },
+      "targeted": {
+        "label": "Repeated-run uncertainty added",
+        "description": "Add confidence intervals and all-checkpoint aggregate effects.",
+        "changedSourceIds": [
+          "MS1-S13",
+          "MS1-S26"
+        ],
+        "reviewerResponse": "Concern weakens if gains are stable."
+      },
+      "control": {
+        "label": "Method name changed",
+        "description": "Experimental evidence stays fixed.",
+        "changedSourceIds": [
+          "MS1-S01"
+        ],
+        "reviewerResponse": "Concern remains."
+      },
+      "expectedBehavior": "Uncertainty evidence matters; unrelated wording does not.",
+      "result": "passed",
+      "explanation": "The requested evidence directly targets reliability."
+    },
+    {
+      "id": "CF-F08",
+      "findingId": "F08",
+      "baseline": {
+        "label": "Alignment terminology",
+        "description": "Residual-energy share is described as alignment and pretrained preservation.",
+        "changedSourceIds": [],
+        "reviewerResponse": "Semantic defect verified."
+      },
+      "targeted": {
+        "label": "Definition-aligned terminology",
+        "description": "Rename the quantity and separate the CKA observation.",
+        "changedSourceIds": [
+          "MS1-S12",
+          "MS1-S23"
+        ],
+        "reviewerResponse": "Semantic defect resolved."
+      },
+      "control": {
+        "label": "Notation font changed",
+        "description": "Interpretation remains unchanged.",
+        "changedSourceIds": [
+          "MS1-S28"
+        ],
+        "reviewerResponse": "Defect remains."
+      },
+      "expectedBehavior": "The verdict responds to the mathematical interpretation, not cosmetic notation.",
+      "result": "passed",
+      "explanation": "A precise wording intervention directly repairs the verified mismatch."
+    },
+    {
+      "id": "CF-F09",
+      "findingId": "F09",
+      "baseline": {
+        "label": "Complementary-signal claim",
+        "description": "No controlled dependence analysis is reported.",
+        "changedSourceIds": [],
+        "reviewerResponse": "Concern retained."
+      },
+      "targeted": {
+        "label": "Incremental-information analysis",
+        "description": "Add correlations and controlled ablations across layers and checkpoints.",
+        "changedSourceIds": [
+          "MS1-S17",
+          "MS1-S28"
+        ],
+        "reviewerResponse": "Concern changes according to measured incremental value."
+      },
+      "control": {
+        "label": "Signal colors changed",
+        "description": "Evidence remains unchanged.",
+        "changedSourceIds": [
+          "MS1-S17"
+        ],
+        "reviewerResponse": "Concern remains."
+      },
+      "expectedBehavior": "Only dependence-aware evidence changes the verdict.",
+      "result": "inconclusive",
+      "explanation": "Required raw-spectrum analysis is unavailable."
+    },
+    {
+      "id": "CF-F10",
+      "findingId": "F10",
+      "baseline": {
+        "label": "Existing ablations",
+        "description": "No norm-matched layer-wise shrinkage control is present.",
+        "changedSourceIds": [],
+        "reviewerResponse": "Alternative explanation remains."
+      },
+      "targeted": {
+        "label": "Matched shrinkage baseline",
+        "description": "Hold each layer's update norm fixed without spectral separation.",
+        "changedSourceIds": [
+          "MS1-S16",
+          "MS1-S29"
+        ],
+        "reviewerResponse": "Concern weakens only if MonoSoup outperforms the matched control."
+      },
+      "control": {
+        "label": "Global Wise-FT restyled",
+        "description": "No matched layer-wise control is added.",
+        "changedSourceIds": [
+          "MS1-S16"
+        ],
+        "reviewerResponse": "Concern remains."
+      },
+      "expectedBehavior": "A causal matched control, not presentation, changes the result.",
+      "result": "inconclusive",
+      "explanation": "The decisive experiment is not available."
+    },
+    {
+      "id": "CF-F11",
+      "findingId": "F11",
+      "baseline": {
+        "label": "Derivational bridge",
+        "description": "Pairwise alignment is presented as motivating single-update spectral reweighting.",
+        "changedSourceIds": [],
+        "reviewerResponse": "Logical bridge concern retained."
+      },
+      "targeted": {
+        "label": "Claim narrowed to inspiration",
+        "description": "Explicitly distinguish the quantities and avoid claiming derivation.",
+        "changedSourceIds": [
+          "MS1-S30"
+        ],
+        "reviewerResponse": "Reasoning overreach resolved."
+      },
+      "control": {
+        "label": "Section order changed",
+        "description": "The unsupported implication remains.",
+        "changedSourceIds": [
+          "MS1-S05"
+        ],
+        "reviewerResponse": "Concern remains."
+      },
+      "expectedBehavior": "Changing the logical claim or adding a direct mapping changes the verdict.",
+      "result": "passed",
+      "explanation": "The concern is specific to the unsupported implication."
+    },
+    {
+      "id": "CF-F12",
+      "findingId": "F12",
+      "baseline": {
+        "label": "Unexplained +9.2 claim",
+        "description": "Narrative magnitude does not match visible within-variant table deltas.",
+        "changedSourceIds": [],
+        "reviewerResponse": "Numerical discrepancy verified."
+      },
+      "targeted": {
+        "label": "Traceable values supplied",
+        "description": "Correct the text or identify exact rows and baseline.",
+        "changedSourceIds": [
+          "MS1-S14",
+          "MS1-S27"
+        ],
+        "reviewerResponse": "Discrepancy resolved if arithmetic reconciles."
+      },
+      "control": {
+        "label": "Benchmark order changed",
+        "description": "Numbers and claim remain unchanged.",
+        "changedSourceIds": [
+          "MS1-S14"
+        ],
+        "reviewerResponse": "Discrepancy remains."
+      },
+      "expectedBehavior": "Only a reproducible calculation repairs the claim.",
+      "result": "passed",
+      "explanation": "The test is deterministic and claim-specific."
+    }
+  ],
+  "report": {
+    "summary": "Promising and practical, with credible empirical breadth in the supplied manuscript. The central geometric explanation should be revised because residual-energy share is not itself an alignment measure, and a matched shrinkage control is needed to identify the mechanism. Stronger theoretical positioning, a cleaner language OOD protocol, large-scale resource evidence, uncertainty reporting, and two numerical corrections are also needed."
+  },
+  "askPeerMind": {
+    "suggestedPrompts": [
+      {
+        "id": "ASK-P1",
+        "scope": "whole_paper",
+        "label": "What does MonoSoup change?",
+        "query": "How does MonoSoup construct the edited checkpoint?"
+      },
+      {
+        "id": "ASK-F2",
+        "scope": "finding",
+        "contextId": "F02",
+        "label": "Why is the theory concern retained?",
+        "query": "What does the coefficient derivation prove, and what does it not prove?"
+      },
+      {
+        "id": "ASK-F3",
+        "scope": "finding",
+        "contextId": "F03",
+        "label": "Why was the absence claim refuted?",
+        "query": "Where is the non-Transformer evidence?"
+      },
+      {
+        "id": "ASK-F6",
+        "scope": "finding",
+        "contextId": "F06",
+        "label": "Show the arithmetic",
+        "query": "Why should 70 checkpoints produce 2,415 pairs?"
+      },
+      {
+        "id": "ASK-F8",
+        "scope": "finding",
+        "contextId": "F08",
+        "label": "Is cosine alpha really alignment?",
+        "query": "What does cosine alpha mathematically measure?"
+      },
+      {
+        "id": "ASK-F12",
+        "scope": "finding",
+        "contextId": "F12",
+        "label": "Check the +9.2 claim",
+        "query": "Can the claimed language gain be reproduced from Table 2?"
+      }
+    ],
+    "preparedResponses": [
+      {
+        "id": "ask-r1",
+        "match": {
+          "scope": "whole_paper",
+          "promptId": "ASK-P1"
+        },
+        "response": {
+          "answer": "For each layer, the method forms the fine-tuning update, splits it with SVD at an energy threshold, and applies adaptive coefficients derived from spectral decay and low-energy mass before adding the edit back to pretrained weights.",
+          "sourceIds": [
+            "MS1-S08",
+            "MS1-S10",
+            "MS1-S11"
+          ],
+          "actions": [
+            {
+              "type": "open_source",
+              "label": "Open source",
+              "targetId": "MS1-S11"
+            }
+          ]
+        }
+      },
+      {
+        "id": "ask-r2",
+        "match": {
+          "scope": "finding",
+          "contextId": "F02",
+          "promptId": "ASK-F2"
+        },
+        "response": {
+          "answer": "Appendix G establishes uniqueness only inside a chosen bilinear family and shows monotonic, Lipschitz behavior. It does not establish that the boundary conditions are necessary for robustness or that the rule optimizes ID/OOD risk.",
+          "sourceIds": [
+            "MS1-S18",
+            "MS1-S22"
+          ],
+          "actions": [
+            {
+              "type": "open_finding",
+              "label": "Open finding",
+              "targetId": "F02"
+            }
+          ]
+        }
+      },
+      {
+        "id": "ask-r3",
+        "match": {
+          "scope": "finding",
+          "contextId": "F03",
+          "promptId": "ASK-F3"
+        },
+        "response": {
+          "answer": "Pages 21–22 contain a ConvNeXt threshold ablation and Table 5 reports ConvNeXt results, including a freevariance variant. That evidence refutes the categorical claim that the supplied manuscript is Transformer-only.",
+          "sourceIds": [
+            "MS1-S24",
+            "MS1-S25"
+          ],
+          "actions": [
+            {
+              "type": "open_source",
+              "label": "Open source",
+              "targetId": "MS1-S25"
+            }
+          ]
+        }
+      },
+      {
+        "id": "ask-r4",
+        "match": {
+          "scope": "finding",
+          "contextId": "F06",
+          "promptId": "ASK-F6"
+        },
+        "response": {
+          "answer": "The number of unordered pairs is n(n−1)/2. For n=70, 70×69/2=2,415. Figure 2 reports 2,409, leaving six pairs unexplained.",
+          "sourceIds": [
+            "MS1-S06"
+          ],
+          "actions": [
+            {
+              "type": "open_finding",
+              "label": "Open finding",
+              "targetId": "F06"
+            }
+          ],
+          "toolTrace": [
+            {
+              "label": "Read cited table or figure",
+              "status": "done"
+            },
+            {
+              "label": "Recompute stated quantity",
+              "status": "done"
+            }
+          ]
+        }
+      },
+      {
+        "id": "ask-r5",
+        "match": {
+          "scope": "finding",
+          "contextId": "F08",
+          "promptId": "ASK-F8"
+        },
+        "response": {
+          "answer": "Appendix C derives cosine-squared alpha as one minus the retained spectral-energy fraction. That is a normalized magnitude, not an inner-product alignment with pretrained weights. The CKA result is separate empirical evidence and does not change the definition.",
+          "sourceIds": [
+            "MS1-S12",
+            "MS1-S23",
+            "MS1-S28"
+          ],
+          "actions": [
+            {
+              "type": "open_finding",
+              "label": "Open finding",
+              "targetId": "F08"
+            }
+          ]
+        }
+      },
+      {
+        "id": "ask-r6",
+        "match": {
+          "scope": "finding",
+          "contextId": "F12",
+          "promptId": "ASK-F12"
+        },
+        "response": {
+          "answer": "The prose reports +9.2 points on two benchmarks, but the visible fine-tuned-to-MonoSoup changes in Table 2 are roughly 0.5–1.5 points. No alternative rows or baseline are named that reproduce +9.2 for both tasks.",
+          "sourceIds": [
+            "MS1-S14",
+            "MS1-S27"
+          ],
+          "actions": [
+            {
+              "type": "open_finding",
+              "label": "Open finding",
+              "targetId": "F12"
+            }
+          ],
+          "toolTrace": [
+            {
+              "label": "Read cited table or figure",
+              "status": "done"
+            },
+            {
+              "label": "Recompute stated quantity",
+              "status": "done"
+            }
+          ]
+        }
+      }
+    ]
+  },
+  "comparisonPreset": {
+    "id": "model-soups-v1-human-comparison",
+    "inputs": {
+      "humanReviews": [
+        {
+          "id": "HR-mj9q",
+          "label": "Reviewer mj9q",
+          "reviewText": "The paper is practical and conceptually elegant, but the novelty beyond SVD-based methods is limited, the coefficient lacks theoretical grounding, and the soup terminology may overstate the relation to ensembling.",
+          "sourceType": "openreview"
+        },
+        {
+          "id": "HR-YMQp",
+          "label": "Reviewer YMQp",
+          "reviewText": "The method is lightweight and empirically strong, but the single-checkpoint storage motivation is unconvincing and evidence on another modality such as audio would strengthen applicability.",
+          "sourceType": "openreview"
+        },
+        {
+          "id": "HR-q1EA",
+          "label": "Reviewer q1EA",
+          "reviewText": "The coefficient interpretation is unclear, Figure 3 may conflict with the truncation narrative, gains over LiNeS are marginal without variability, generality may be regime-dependent, and Figure 2 has a pair-count discrepancy.",
+          "sourceType": "openreview"
+        },
+        {
+          "id": "HR-gzvH",
+          "label": "Reviewer gzvH",
+          "reviewText": "The creative single-checkpoint reframing is strong, but plug-and-play practicality is qualified by selecting R, architecture diversity is limited, and a label-free selection rule is needed.",
+          "sourceType": "openreview"
+        },
+        {
+          "id": "HR-Yqvj",
+          "label": "Reviewer Yqvj",
+          "reviewText": "The method is simple and well motivated, but gains on strong checkpoints are modest, variability is missing, and the per-layer impact of the coefficients needs deeper analysis.",
+          "sourceType": "openreview"
+        }
+      ],
+      "baselineReview": {
+        "id": "BR-chatgpt-v1",
+        "label": "ChatGPT independent review",
+        "reviewText": "An independent long-form review emphasizing coefficient semantics, signal dependence, update shrinkage, the Section 3-to-4 bridge, language effect-size arithmetic, SVD cost, aggregate CLIP statistics, and presentation accuracy.",
+        "sourceType": "other"
+      }
+    },
+    "result": {
+      "themes": [
+        {
+          "id": "CT01",
+          "label": "Contribution differentiation",
+          "peerMindFindingIds": [
+            "F01"
+          ],
+          "humanFindingIds": [
+            "HF01"
+          ],
+          "baselineFindingIds": [],
+          "relation": "shared",
+          "sourceIds": [
+            "MS1-S03",
+            "MS1-S04"
+          ],
+          "defenderStatus": "human_required",
+          "explanation": "Both identify a contribution-positioning question; PeerMind abstains from external novelty adjudication."
+        },
+        {
+          "id": "CT02",
+          "label": "Weighting-rule theory",
+          "peerMindFindingIds": [
+            "F02"
+          ],
+          "humanFindingIds": [
+            "HF02",
+            "HF16"
+          ],
+          "baselineFindingIds": [
+            "BF03",
+            "BF06"
+          ],
+          "relation": "shared",
+          "sourceIds": [
+            "MS1-S11",
+            "MS1-S22",
+            "MS1-S23"
+          ],
+          "defenderStatus": "supported",
+          "explanation": "All three reviews question the explanatory reach of the rule; PeerMind preserves its proven monotonicity and bounded sensitivity."
+        },
+        {
+          "id": "CT03",
+          "label": "Architecture and label-free evidence across versions",
+          "peerMindFindingIds": [
+            "F03"
+          ],
+          "humanFindingIds": [
+            "HF12",
+            "HF13"
+          ],
+          "baselineFindingIds": [],
+          "relation": "disagreement",
+          "sourceIds": [
+            "MS1-S24",
+            "MS1-S25"
+          ],
+          "defenderStatus": "refuted",
+          "explanation": "The human concern was valid for the original submission snapshot. ConvNeXt and automatic-selection evidence added during rebuttal resolve the categorical absence only in the revised snapshot; documentation breadth remains limited."
+        },
+        {
+          "id": "CT04",
+          "label": "Language OOD protocol",
+          "peerMindFindingIds": [
+            "F04"
+          ],
+          "humanFindingIds": [],
+          "baselineFindingIds": [],
+          "relation": "peermind_only",
+          "sourceIds": [
+            "MS1-S14",
+            "MS1-S15"
+          ],
+          "defenderStatus": "supported",
+          "explanation": "PeerMind isolates the distribution-shift definition separately from numerical language claims."
+        },
+        {
+          "id": "CT05",
+          "label": "Large-model scalability profile",
+          "peerMindFindingIds": [
+            "F05"
+          ],
+          "humanFindingIds": [],
+          "baselineFindingIds": [
+            "BF08"
+          ],
+          "relation": "shared",
+          "sourceIds": [
+            "MS1-S01",
+            "MS1-S18"
+          ],
+          "defenderStatus": "supported",
+          "explanation": "PeerMind and ChatGPT request quality and resource measurements at realistic model scale; PeerMind explicitly preserves the logical one-checkpoint savings."
+        },
+        {
+          "id": "CT06",
+          "label": "Figure 2 pair count",
+          "peerMindFindingIds": [
+            "F06"
+          ],
+          "humanFindingIds": [
+            "HF10"
+          ],
+          "relation": "shared",
+          "sourceIds": [
+            "MS1-S06"
+          ],
+          "defenderStatus": "verified",
+          "explanation": "Both identify the exact six-pair discrepancy; deterministic arithmetic verifies it."
+        },
+        {
+          "id": "CT07",
+          "label": "Effect size and uncertainty",
+          "peerMindFindingIds": [
+            "F07"
+          ],
+          "humanFindingIds": [
+            "HF08",
+            "HF14",
+            "HF15"
+          ],
+          "baselineFindingIds": [
+            "BF09"
+          ],
+          "relation": "shared",
+          "sourceIds": [
+            "MS1-S13",
+            "MS1-S20",
+            "MS1-S26"
+          ],
+          "defenderStatus": "supported",
+          "explanation": "All three preserve large weak-checkpoint gains while requesting uncertainty and aggregate all-checkpoint statistics."
+        },
+        {
+          "id": "CT08",
+          "label": "Soup terminology",
+          "peerMindFindingIds": [],
+          "humanFindingIds": [
+            "HF03"
+          ],
+          "relation": "human_only",
+          "sourceIds": [
+            "MS1-S01",
+            "MS1-S03"
+          ],
+          "defenderStatus": "not_checked",
+          "explanation": "A presentation/positioning issue not selected for the seven-finding PeerMind run."
+        },
+        {
+          "id": "CT09",
+          "label": "Storage-centered motivation",
+          "peerMindFindingIds": [],
+          "humanFindingIds": [
+            "HF04"
+          ],
+          "relation": "human_only",
+          "sourceIds": [
+            "MS1-S01",
+            "MS1-S03"
+          ],
+          "defenderStatus": "not_checked",
+          "explanation": "A practical-premise judgment not independently checked."
+        },
+        {
+          "id": "CT10",
+          "label": "Audio modality coverage",
+          "peerMindFindingIds": [],
+          "humanFindingIds": [
+            "HF05"
+          ],
+          "relation": "human_only",
+          "sourceIds": [
+            "MS1-S18"
+          ],
+          "defenderStatus": "not_checked",
+          "explanation": "A useful extension rather than a demonstrated defect in the bounded vision/language evidence."
+        },
+        {
+          "id": "CT11",
+          "label": "Truncation narrative",
+          "peerMindFindingIds": [],
+          "humanFindingIds": [
+            "HF07",
+            "HF09"
+          ],
+          "relation": "human_only",
+          "sourceIds": [
+            "MS1-S09",
+            "MS1-S21"
+          ],
+          "defenderStatus": "not_checked",
+          "explanation": "A graph-reading and regime-generality issue outside the selected seven findings."
+        },
+        {
+          "id": "CT12",
+          "label": "Notation and checkpoint documentation",
+          "peerMindFindingIds": [],
+          "humanFindingIds": [
+            "HF11",
+            "HF17"
+          ],
+          "baselineFindingIds": [
+            "BF10"
+          ],
+          "relation": "shared",
+          "sourceIds": [
+            "MS1-S05",
+            "MS1-S13"
+          ],
+          "defenderStatus": "not_checked",
+          "explanation": "Human and ChatGPT reviews identify presentation problems outside the selected scientific investigations."
+        },
+        {
+          "id": "CT13",
+          "label": "Residual energy mislabeled as alignment",
+          "peerMindFindingIds": [
+            "F08"
+          ],
+          "humanFindingIds": [
+            "HF06"
+          ],
+          "baselineFindingIds": [
+            "BF01"
+          ],
+          "relation": "shared",
+          "sourceIds": [
+            "MS1-S12",
+            "MS1-S23",
+            "MS1-S28"
+          ],
+          "defenderStatus": "verified",
+          "explanation": "All three identify the conceptual ambiguity; PeerMind resolves the exact identity and limits the verdict without rejecting the empirical CKA observation."
+        },
+        {
+          "id": "CT14",
+          "label": "Dependence among spectral signals",
+          "peerMindFindingIds": [
+            "F09"
+          ],
+          "humanFindingIds": [],
+          "baselineFindingIds": [
+            "BF02"
+          ],
+          "relation": "shared",
+          "sourceIds": [
+            "MS1-S10",
+            "MS1-S17",
+            "MS1-S28"
+          ],
+          "defenderStatus": "supported",
+          "explanation": "PeerMind and ChatGPT identify the dependency; PeerMind avoids the stronger unsupported conclusion that the signals are completely redundant."
+        },
+        {
+          "id": "CT15",
+          "label": "Layer-wise shrinkage alternative",
+          "peerMindFindingIds": [
+            "F10"
+          ],
+          "humanFindingIds": [],
+          "baselineFindingIds": [
+            "BF04"
+          ],
+          "relation": "shared",
+          "sourceIds": [
+            "MS1-S08",
+            "MS1-S16",
+            "MS1-S29"
+          ],
+          "defenderStatus": "supported",
+          "explanation": "PeerMind converts ChatGPT's strong hypothesis into a causal contract with a norm-matched scalar baseline and an explicit stop rule."
+        },
+        {
+          "id": "CT16",
+          "label": "Multi-model to single-model geometry bridge",
+          "peerMindFindingIds": [
+            "F11"
+          ],
+          "humanFindingIds": [],
+          "baselineFindingIds": [
+            "BF05"
+          ],
+          "relation": "shared",
+          "sourceIds": [
+            "MS1-S05",
+            "MS1-S07",
+            "MS1-S30"
+          ],
+          "defenderStatus": "supported",
+          "explanation": "PeerMind and ChatGPT agree the quantities differ; PeerMind preserves the broader intuition and offers a wording-level falsifier or a substantive mapping."
+        },
+        {
+          "id": "CT17",
+          "label": "Claimed +9.2 language gains",
+          "peerMindFindingIds": [
+            "F12"
+          ],
+          "humanFindingIds": [],
+          "baselineFindingIds": [
+            "BF07"
+          ],
+          "relation": "shared",
+          "sourceIds": [
+            "MS1-S14",
+            "MS1-S27"
+          ],
+          "defenderStatus": "verified",
+          "explanation": "PeerMind turns the ChatGPT observation into a bounded table-to-text consistency check requiring exact calculation provenance."
+        }
+      ],
+      "summary": {
+        "sharedCount": 11,
+        "humanOnlyCount": 4,
+        "peerMindOnlyCount": 1,
+        "disagreementCount": 1,
+        "refutedCount": 1
+      }
+    }
+  }
+}

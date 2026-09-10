@@ -4,12 +4,26 @@ PeerMind is an interactive prototype for auditable, evidence-grounded scientific
 
 ## Demo
 
-Open [`index.html`](./index.html) in a browser. The demo runs locally in the browser; PDF text extraction loads PDF.js from a public CDN.
+The live demo is the Vite app in [`app/`](./app):
+
+```bash
+cd app
+npm install
+npm run dev
+```
+
+Open `http://localhost:5173`. Upload [`papers/sample_paper_v1.pdf`](./papers/sample_paper_v1.pdf) from the landing page, then walk Understand → Report → Compare. The demo processes the PDF and replays a prepared review: no live model and no network after the first local serve.
+
+```bash
+npm run build
+```
+
+The legacy [`index.html`](./index.html) at the repo root is a visual reference only. Do not use it for presentations.
 
 ## Sample papers
 
-- [`sample_paper_original.pdf`](./papers/sample_paper_original.pdf)
-- [`sample_paper_modified.pdf`](./papers/sample_paper_modified.pdf)
+- [`sample_paper_v1.pdf`](./papers/sample_paper_v1.pdf) — the manuscript used by the live demo
+- [`sample_paper_v2.pdf`](./papers/sample_paper_v2.pdf)
 
 ## Additional artifacts
 

@@ -1,1075 +1,463 @@
-# PeerMind Demo — Detailed Implementation Plan
+# PeerMind Demo — Implementation Plan
 
-**Phase:** prepared frontend demo only  
-**Out of scope this phase:** LLM calls, backends, OpenReview APIs, live agent orchestration, Docker services, authentication
+**Status:** Historical 2.0 build plan. The running `app/` was built from this file. Do not implement new work from it.
 
-This plan is the implementation contract for building the demo described in `peermind-demo-tech-uiux-design.md`, using the CFAR story in `PeerMind - CFAR.pptx` and reusable content from the current `index.html` prototype.
+**Current target:** `peermind-system-design.md`, `peermind-demo-tech-uiux-design.md` v3.0, and `peermind-demo-refinement-implementation-plan.md`.
+
+**Goal:** A good-looking, content-agnostic **fake demo** of the PeerMind workflow. Presenters can load a prepared package, walk Understand → Report, then Compare. No live model, no backend, no internet required.
+
+**Design sources:**
+
+- Product / IA / data: `peermind-demo-tech-uiux-design.md`
+- Visual tokens: `peermind-demo-design-rules.md`
+
+**Priority:** Look and UX flow first. Skip real AI, skip production infra, skip a test suite.
+
+**Time box:** Four phases. Each phase should leave a clickable demo, not a half-wired scaffold.
 
 ---
 
-## 1. What we are building
+## Constraints (read once)
 
-PeerMind is an **evidence-based AI peer reviewer with counterfactual verification**. The demo must not look like a chatbot that says “review this paper.”
+1. **Fake but honest.** Playback of prepared JSON. Never pretend a network model is running. Badge: `Prepared sample · No live AI`.
+2. **Content-agnostic UI.** No paper title, claims, findings, or numbers in components. All of that lives in `DemoDataPackage`.
+3. **Offline demo.** Bundle fonts, demo JSON, and paper assets. Do not rely on CDNs at presentation time.
+4. **Almost no tests.** No Jest/Vitest/Playwright suite. Acceptance = `npm run build` plus a manual click-through of the presentation script. Zod validation of the package **is** required (it prevents a live demo crash).
+5. **Do not build P2** from the design doc: real PDF parsing, real LLM Q&A, OpenReview API, real semantic alignment, TanStack Table, Recharts, Neo4j, FastAPI, auth.
 
-The experience the UI must make visible:
+Reuse the existing `index.html` only as a **visual and content mine**. Do not extend that file. The new app is a Vite + React rewrite.
+
+---
+
+## Target stack
 
 ```text
-UNDERSTAND   Paper → source-linked paper graph
-REVIEW       Paper signals → dynamic specialists → critique contracts
-CHALLENGE    Critique → evidence / counter-evidence → bounded replan → verdict
-TEST         Baseline vs targeted change vs control → reviewer sensitivity
-REPORT       Validity + importance + sensitivity + limits
-COMPARE      PeerMind vs independent human reviews → finding-level alignment
+Vite · React · TypeScript
+Tailwind CSS + shadcn/ui
+Zustand · React Router · Zod
+AntV G6          → Paper Evidence Graph only
+XYFlow           → Defender workflow only
+Motion           → short reveals
+Lucide React     → icons
+react-pdf        → optional; page-image / excerpt first
 ```
 
-Product lines to keep throughout:
+No PostgreSQL, Redis, LangGraph, WebSockets, or auth.
 
-- Headline: **AI peer review with unit tests.**
-- Supporting line: **Every critique must survive a challenge.**
-- Persistent badge: **Prepared demo · local fixtures · no live AI**
-
-### 1.1 This phase is a fake demo
-
-All scientific “agent” behavior is **scripted playback over local JSON fixtures**.
-
-| Behavior | This phase |
-|---|---|
-| Paper understanding | Replay prepared graph records |
-| Specialist routing | Replay prepared routing decisions |
-| Critique generation | Show prepared critique contracts |
-| Defender investigation | Step through prepared events |
-| Evidence discovery | Reveal prepared evidence records |
-| Replan / stop / abstain | Reveal prepared branch events |
-| Counterfactual test | Reveal prepared three-branch results |
-| Human comparison | Load prepared review excerpts |
-| Numerical check | Local deterministic arithmetic only |
-| LLM / backend / APIs | **None** |
-
-Prepared behavior must be labeled **Prepared Demo**, **Simulated**, or **Replay** wherever a viewer could mistake it for a live model.
-
-### 1.2 Why rebuild instead of extending `index.html`
-
-The current prototype is a working single-file app, but it does not match the intended product:
-
-- Understand and Review are one long page.
-- Counterfactual testing is buried inside Verification.
-- There is no Compare page and no review lock.
-- Landing still mixes PatchBridge copy with the MonoSoup story.
-- Navigation is view-id based, not URL-addressable.
-- Graphs are hand-built SVG, not G6 / React Flow as specified.
-- State is layered global mutations that are hard to extend safely.
-
-This phase creates a new Vite + React + TypeScript app. `index.html` remains a **content and copy source**, not the runtime.
+Suggested app root: `app/` (keep current `index.html` as a reference until the new demo replaces it).
 
 ---
 
-## 2. Inputs and source-of-truth decisions
+## Recommended repo layout
 
-| Source | Use for |
-|---|---|
-| `PeerMind - CFAR.pptx` | Story, 3-stage architecture, MonoSoup examples, evaluation language |
-| `CFAR_Hackthon.pdf` | P2 track, judging criteria, 3-minute demo inside a 10-minute talk |
-| `peermind-demo-tech-uiux-design.md` | Pages, stack, data model, interaction, visual system, P0/P1 scope |
-| `index.html` | Finding copy, critique contracts, defender steps, playback copy |
-| `outputs/model-soups-paper-knowledge-graph.js` | Understand-page paper graph |
-| `outputs/monosoup-knowledge-graph.js` | Compare-page human-review layer and rebuttal/meta-review |
-
-### 2.1 Canonical sample paper
-
-Use **one paper for the entire demo**:
-
-> **Model soups need only one ingredient** (MonoSoup / ICLR 2026 submission 25327)
-
-Do not ship PatchBridge, ContractNet, or CacheFlow on the presentation path. Those remaining in `index.html` are legacy fixtures only.
-
-Reasons:
-
-- The slides are MonoSoup throughout.
-- Prepared graph, critiques, counterfactuals, and OpenReview-derived comparison data already exist.
-- One coherent story is more inspectable than three fictional profiles.
-
-### 2.2 Canonical findings
-
-Keep these IDs stable in UI, fixtures, export JSON, and speaker notes.
-
-| ID | Critique | Validity | Sensitivity | Demo role |
-|---|---|---|---|---|
-| F01 | Practical, but theory and effect size are not yet strong enough | Supported concern | Incomplete / not constructible | Paper-level judgment; no binary repair |
-| F02 | λLow is not theoretically justified by the four boundary conditions | Supported concern | Incomplete | Visible **replan ×1 → stop** path |
-| F03 | Lacks a label-free rule and non-Transformer evidence | Refuted | Failed | Main live Challenge + Test path |
-| F04 | Multi-ID conditioning is mandatory or OOD results are invalid | Refuted | Passed | Overstated importance; optional metric |
-| F05 | Figure reports 2,409 pairs; 70 choose 2 = 2,415 | Verified | Passed | Deterministic arithmetic check |
-
-F03 is the live 3-minute path because slides 6–7 use it.
-
-**F03 Test interpretation (align slides with the design rule):**
-
-Slide 7 and the design both require Validity ≠ Sensitivity. Implement F03 as:
-
-- **Critique validity: Refuted.** ERank-MonoSoup, ConvNeXt, and R-sensitivity already exist.
-- **Reviewer sensitivity: Failed.** In the baseline, the reviewer still treats the evidence as insufficient. The targeted branch that *adds/highlights* that evidence is the branch that should change a sensitive reviewer. The prepared reviewer does not update correctly, so sensitivity fails.
-- **Importance: Moderate residual.** Broader architecture coverage would still be useful; the categorical absence claim is false.
-
-Do not collapse these three into one badge.
-
-### 2.3 Capability coverage vs the design’s four-finding table
-
-The design’s PatchBridge table is a capability checklist, not the sample paper. Map it as follows:
-
-| Design capability | MonoSoup finding |
-|---|---|
-| False accusation → counter-evidence → Refuted | F03 |
-| Deterministic numerical check → Verified | F05 |
-| Evidence gap → bounded replan → Supported concern | F02 |
-| Missing source → Stop / Unverified | F01/F02 incomplete counterfactual (intervention not constructible) |
-
-If a fifth “Unverified / human required” card is needed on Report, use F01’s paper-level judgment as **Human Required** for the remaining scientific-value decision, while keeping its validity as Supported concern.
-
----
-
-## 3. Hard constraints
-
-### 3.1 Must not implement now
-
-- OpenAI / Anthropic / local LLM clients
-- LangGraph, FastAPI, WebSockets
-- PostgreSQL, Redis, Neo4j, vector DBs
-- Live OpenReview HTTP calls
-- Real PDF text extraction as a required demo path
-- Authentication, multi-user state, observability
-- Arbitrary-PDF scientific review
-- Invented accuracy percentages (“PeerMind accuracy = 90%”)
-
-### 3.2 May implement as local, deterministic code
-
-- `70 * 69 / 2` pair-count checker for F05
-- Fixture loading from `/public` or `src/data`
-- Hash/path routing and Zustand state
-- Scripted playback timers
-- Optional static PDF preview of a local sample file, if added later
-
-### 3.3 Reliability requirements
-
-- Core demo runs with the network disabled
-- Deterministic replay: same clicks → same events
-- Play / Pause / Next Step / Reset on every animated page
-- Hidden or keyboard **Complete instantly**
-- Direct route access to every stage
-- One-click reset of the whole demo
-- No long loading sequence
-- Prepared data packaged in the repo
-
----
-
-## 4. Technology stack
-
-Follow the design document. Do not add libraries unless a P0 page needs them.
+Follow design doc §25. Condensed:
 
 ```text
-Vite
-+ React 19
-+ TypeScript
-+ Tailwind CSS v4
-+ shadcn/ui
-+ Zustand
-+ React Router v7
-+ AntV G6          Paper Evidence Graph only
-+ @xyflow/react    Defender / reviewer workflow only
-+ motion           200–600 ms transitions
-+ lucide-react
-```
-
-Optional, only after P0 is stable:
-
-- `react-pdf` for a source-sheet PDF page preview
-- Recharts for one comparison summary, not the main matrix
-- TanStack Table only if the finding matrix becomes unwieldy
-
-Install set:
-
-```bash
-npm create vite@latest . -- --template react-ts
-npm install react-router-dom zustand @antv/g6 @xyflow/react lucide-react motion
-npx shadcn@latest init
-npx shadcn@latest add button card badge tabs dialog sheet select tooltip scroll-area accordion collapsible progress separator
+app/
+  src/
+    app/            App.tsx, router.tsx
+    pages/          one file per route
+    components/     layout, paper, review, defender, counterfactual, report, comparison, ask
+    data/           schema.ts, loadDemoPackage.ts, adapters/
+    demo/           playbackEngine.ts
+    store/          demoStore.ts
+    types/
+    styles/         tokens.css (from design rules)
+  public/
+    demo-data/      bundled DemoDataPackage JSON
+    papers/         PDF and/or page images
+    fonts/          Inter (if not npm-bundled)
 ```
 
 ---
 
-## 5. Application architecture
+## What “done” means for the whole demo
 
-### 5.1 Routes
+A presenter, with no network, can:
+
+1. Open the app, read the landing in under 10 seconds, load the bundled package (one click).
+2. Walk **Understand → Review → Challenge → Test → Report → Compare** using only on-screen controls.
+3. Click a graph node / finding / evidence row and see the matching paper highlight or excerpt.
+4. Play, step, skip, and reset the defender animation.
+5. Lock the run, load prepared comparison data, show shared / human-only / PeerMind-only / disagreement.
+6. Optionally open Ask PeerMind and click one suggested question.
+
+If those six hold, the demo is shippable even if PDF.js is unused and Ask is fully canned.
+
+---
+
+# Phase 1 — Foundation, shell, and intake
+
+**Outcome:** The app looks like PeerMind, loads a validated package, and blocks the workflow until then.
+
+**Why first:** Every later page reads Zustand + the schema. If tokens and the package contract are wrong, you will restyle and reshape everything.
+
+### 1.1 Scaffold
+
+- Vite React TypeScript app.
+- Tailwind + shadcn with colors from `peermind-demo-design-rules.md` (override default zinc primary to `#6554CF` immediately).
+- Bundle Inter locally (`@fontsource/inter` or `public/fonts`). Georgia stays system.
+- React Router routes:
 
 ```text
-/                    Landing
-/understand          Paper graph + inspector
-/review              Routing + critique contracts
+/                Landing
+/intake          Intake (can be combined with landing)
+/understand
+/review
 /challenge/:findingId
 /test/:findingId
 /report
 /compare
-/architecture
+/architecture    stub page is enough
 ```
 
-Unknown routes redirect to `/`. Refreshing a deep link reconstructs the prepared fixture and the minimum prerequisite state for that page (see 5.4).
+- Lucide, Zustand, Zod, Motion. Defer G6 / XYFlow / react-pdf until the phase that needs them.
 
-### 5.2 Project structure
+### 1.2 Design system in code
 
-Create the app at the repo root (keep existing prototype files untouched until the new app runs).
+Implement, do not approximate:
 
-```text
-peermind-demo/                         # Vite app root; current files stay as references
-  public/
-    fixtures/
-      sample-paper.pdf                 # optional later
-    brand/
-  src/
-    app/
-      App.tsx
-      router.tsx
-      providers.tsx
-    pages/
-      LandingPage.tsx
-      UnderstandPage.tsx
-      ReviewPage.tsx
-      ChallengePage.tsx
-      CounterfactualPage.tsx
-      ReportPage.tsx
-      ComparePage.tsx
-      ArchitecturePage.tsx
-    components/
-      layout/
-        AppHeader.tsx
-        WorkflowStepper.tsx
-        DemoBadge.tsx
-        PresenterControls.tsx
-        SourceLabel.tsx
-      paper/
-        PaperGraph.tsx                 # G6 wrapper
-        PaperSectionNav.tsx
-        PaperInspector.tsx
-        SourceViewer.tsx
-        KeyPointCard.tsx
-      review/
-        ReviewerRouter.tsx
-        ReviewerTeam.tsx
-        ReviewSummary.tsx
-        CritiqueCard.tsx
-        CritiqueContract.tsx
-      defender/
-        DefenderFlow.tsx               # React Flow wrapper
-        EvidenceLedger.tsx
-        LiveInspector.tsx
-        ReplanStatus.tsx
-        FindingVerdict.tsx
-      counterfactual/
-        VariantCard.tsx
-        SpecificityCheck.tsx
-        SensitivityResult.tsx
-        JudgmentSplit.tsx              # validity / importance / sensitivity
-      report/
-        TrustProfile.tsx
-        FindingReportCard.tsx
-        LockBanner.tsx
-      comparison/
-        ReviewInput.tsx
-        ComparisonPlayback.tsx
-        ComparisonSummary.tsx
-        FindingAlignment.tsx
-        FindingMatrix.tsx
-        HumanReviewPanel.tsx
-        CapabilityTable.tsx
-      shared/
-        StatusBadge.tsx
-        ProvenanceCode.tsx
-        EmptyState.tsx
-        Callout.tsx
-    data/
-      paper.ts
-      paperGraph.ts
-      reviewers.ts
-      findings.ts
-      investigations.ts
-      counterfactuals.ts
-      humanReviews.ts
-      comparisons.ts
-      architecture.ts
-    demo/
-      playbackEngine.ts
-      scripts/
-        understandReplay.ts
-        reviewReplay.ts
-        challengeReplay.ts             # keyed by findingId
-        counterfactualReplay.ts
-        compareReplay.ts
-    store/
-      demoStore.ts
-      selectors.ts
-    lib/
-      pairCount.ts                     # deterministic 70 choose 2
-      format.ts
-      cn.ts
-    types/
-      paper.ts
-      finding.ts
-      playback.ts
-      comparison.ts
-    styles/
-      globals.css
-```
+- CSS variables for surfaces, accent, status colors.
+- Button / Card / Badge / Sheet / Dialog / Tabs / Tooltip / ScrollArea / Accordion / Progress / Separator / Textarea.
+- `AppHeader`, `WorkflowStepper`, `DemoModeBadge`.
+- Status pill component mapped to `FindingValidity`.
+- Empty-state and validation-error layouts.
 
-### 5.3 Demo state
+Follow spacing, type scale, header `76px`, and sidebar `210px` from the design rules.
 
-One Zustand store. No page-local copies of findings.
+### 1.3 Data contract
 
-```ts
-type DemoStage =
-  | 'landing'
-  | 'understand'
-  | 'review'
-  | 'challenge'
-  | 'test'
-  | 'report'
-  | 'compare'
-  | 'architecture';
+Port the TypeScript interfaces from the design doc (§8–23) into `src/types` and a **Zod** schema in `src/data/schema.ts`.
 
-interface PlaybackSlice {
-  status: 'idle' | 'playing' | 'paused' | 'complete';
-  cursor: number;          // index into the active script
-  speed: 1 | 1.5 | 2;
-}
+Validate at load:
 
-interface DemoState {
-  paperId: 'monosoup';
-  currentStage: DemoStage;
-  selectedFindingId: string;           // default 'F03'
-  paperGraphComplete: boolean;
-  reviewComplete: boolean;
-  completedFindingIds: string[];
-  replanCountByFinding: Record<string, number>;
-  findingsLocked: boolean;
-  lockedAt: string | null;
-  comparisonReady: boolean;
-  humanReviewsLoaded: boolean;
-  playback: PlaybackSlice;
-  lastEventId: string | null;
-}
-```
+- unique IDs
+- graph edges point at existing nodes
+- `sourceIds` resolve
+- findings, investigations, counterfactuals, playback node IDs, selected agents, Ask matches, comparison-preset refs
 
-Actions:
+On failure, show a diagnostic page (design §28). Do not render half a graph.
 
-```text
-loadPreparedDemo()
-selectFinding(id)
-markFindingComplete(id)
-lockReview()
-loadPreparedHumanReviews()
-play() / pause() / nextStep() / completeInstantly() / resetStage()
-resetDemo()                    // confirm if locked
-```
+Adapters (same UI for all):
 
-Persist only `selectedFindingId`, `completedFindingIds`, `findingsLocked`, `lockedAt`, and `humanReviewsLoaded` in `sessionStorage`. Never persist timers.
+- bundled JSON (default, one-click)
+- user-selected JSON file
+- (optional) TS fixture import — not required if bundled JSON works
 
-### 5.4 Prerequisite reconstruction
+### 1.4 Store
 
-Deep links must not dead-end.
+Zustand `DemoState` as in design §24: package, stage, selection, playback, lock, comparison, ask.
 
-| Entered route | Reconstruct |
-|---|---|
-| `/understand` | Load paper fixture; graph may start incomplete |
-| `/review` | Mark paper graph complete; start or resume review replay |
-| `/challenge/:id` | Graph + review complete; finding selected; defender at step 0 unless already completed |
-| `/test/:id` | Same, plus challenge complete for that finding if the presenter skipped Challenge |
-| `/report` | All five findings available; completed ones keep verdicts, others stay Not checked |
-| `/compare` | Auto-lock prepared completed run PM-001 if the presenter skipped Report lock |
+Navigation to workflow routes is disabled while `packageStatus !== 'ready'`.
 
-A presenter jumping to Compare should see a locked prepared result, not an empty state.
+### 1.5 Landing + Intake
 
-### 5.5 Playback engine
+Landing must explain the product in 5–10 seconds **without** a hard-coded sample finding. Before load: empty product hero + three generic pillars (Make it testable / Challenge it / Change the evidence). After load: show **package** title, metadata, short Zod summary, **Start Review**.
 
-One engine, many scripts. Pages do not own `setInterval`.
+Intake actions:
 
-```ts
-type PlaybackEvent = {
-  id: string;
-  at: number;                 // ms from script start, used by Play
-  type:
-    | 'stage.started'
-    | 'node.reveal'
-    | 'node.activate'
-    | 'node.complete'
-    | 'router.selected'
-    | 'specialist.spawned'
-    | 'specialist.skipped'
-    | 'evidence.discovered'
-    | 'evidence.gap'
-    | 'ledger.updated'
-    | 'replan.started'
-    | 'stop.reached'
-    | 'verdict.recorded'
-    | 'variant.reveal'
-    | 'sensitivity.recorded'
-    | 'comparison.step';
-  payload: Record<string, unknown>;
-};
-```
+- Load Demo Package (bundled)
+- Load Paper / JSON file (for the “this is generic” beat)
+- Start Review → `/understand`
 
-Control semantics:
+### 1.6 Fixture package (minimal but real)
 
-- **Play:** apply remaining events on their `at` timestamps.
-- **Pause:** freeze cursor.
-- **Next Step:** apply exactly one event.
-- **Complete instantly:** apply all remaining events synchronously.
-- **Reset:** cursor = 0, page-local derived view returns to empty/planned.
+Create `public/demo-data/demo-package.json` with enough records that Phase 2–3 are not blocked:
 
-Reduced-motion: skip delays, apply events immediately, keep final states identical.
+- paper metadata + 4–8 sections
+- 8–15 sources with excerpts (and highlight regions if page images exist)
+- a small paper graph
+- a summary
+- reviewer signals + 3–5 agents + a review document
+- 3–6 findings (mixed statuses)
+- one investigation with a replan event
+- one counterfactual
+- report block
+- a few Ask prepared responses
+- a comparison preset
+
+**Mine content from the current `index.html` / sample paper**, but put it only in JSON. If PDFs are not handy, use `previewMode: "excerpt_only"` for Phase 1–2.
+
+### 1.7 Out of scope this phase
+
+G6 graph, XYFlow, playback, Compare, Ask drawer (header button can be disabled), PDF renderer.
+
+### 1.8 Acceptance (manual, ~10 min)
+
+- Tokens match the design rules on Landing and a blank Understand shell.
+- Bundled package loads; invalid JSON shows the diagnostic.
+- Stepper visible; Review+ routes blocked until load.
+- `npm run build` succeeds.
+- Works with the network disabled after the first local serve (fonts and JSON bundled).
 
 ---
 
-## 6. Data model and fixtures
+# Phase 2 — Understand and Review
 
-Port the design’s TypeScript interfaces into `src/types`. Normalize `index.html` objects into those types instead of copying ad-hoc fields.
+**Outcome:** The inspection story works: paper graph ↔ preview ↔ critique cards.
 
-### 6.1 Shared labels
+This is the first half of the live script (0:00–1:05).
 
-Every visible record carries one epistemic source label. Render with text + icon, not color alone.
+### 2.1 Understand page
 
-```text
-AUTHOR CLAIM
-REVIEWER ALLEGATION
-DEFENDER EVIDENCE
-HUMAN REVIEW
-AUTHOR REBUTTAL
-PEERMIND ADJUDICATION
-```
-
-### 6.2 Finding status vocabulary
-
-Use the design’s seven states:
+Three-pane layout from the design:
 
 ```text
-Verified | Supported Concern | Refuted | Unverified | Disputed | Human Required | Not Checked
+Section nav | Paper Evidence Graph (G6) | Paper Preview / Inspector
+Key point cards
+Continue to Review
 ```
 
-Never replace these with High / Medium / Low confidence numbers.
+**PaperGraph (AntV G6)**
 
-### 6.3 Fixture files to author in Phase 1
+- Node types from package only: method, claim, evidence, gap, question.
+- Colors from design rules §2.4.
+- Prefer **prepared layout hints** in JSON over a live force layout (deterministic for the talk).
+- Click node → set `selectedPaperNodeId` + `selectedSourceIds`.
+- Reveal animation on first visit (Motion / G6); honor reduced motion.
 
-Convert the following into typed JSON/TS modules.
+**PaperPreview**
 
-**`paper.ts`**
+Implement the component API in design §10. For the hackathon, ship **two adapters**, use the first that the package supports:
 
-- id, title, authors, venue, prepared-demo notice
-- section list for the left rail: Abstract, Introduction, Related Work, Method, Experiments, Results, Discussion, Appendix
-- 3–4 key-point cards from `model-soups-paper-knowledge-graph.js` `keyFindings`
+1. **Page images** — most reliable highlighting (pre-render only pages cited by the package).
+2. **Excerpt-only** — source cards with page/section/excerpt; never a broken iframe.
 
-**`paperGraph.ts`**
+`react-pdf` is optional in this phase. Add it only if page images are missing and a PDF is already in-repo. Overlay boxes use normalized 0..1 coordinates. No page number hard-coded in the component.
 
-- nodes: method / claim / evidence / gap (no reviewer nodes)
-- edges with relation + provenance source ids
-- layout coordinates from the existing graph file so the first G6 version is stable
+**SourceInspector**
 
-**`findings.ts`**
+Record ID, type, label, location, excerpt, connected records, Open source, Ask about this source (Ask can no-op until Phase 4).
 
-For each of F01–F05:
+**KeyPointCard** — from `paperSummary` only.
 
-- critique text
-- reviewer agent
-- critique contract: allegation, type, scope, falsifier, evidence burden, stop rule, relevance target
-- initial validity = `not_checked`
-- final validity, importance, sensitivity, limitations, next action
+Bidirectional: click highlight → show which claims/findings reference it (query the loaded package).
 
-**`investigations.ts`**
+### 2.2 Review page
 
-Per finding:
+Make routing visible, then show the full review:
 
-- specialist list and skip list
-- ordered playback events
-- evidence records (`for` / `against` / `gap`)
-- replan budget and whether it fires
-- final ledger snapshot
+1. Paper signal chips
+2. Reviewer router → selected specialists (and skipped candidates)
+3. Review editor / complete review: overall assessment, strengths, finding cards, author questions
+4. Critique Contract **drawer** (not a new route)
 
-**`counterfactuals.ts`**
+**CritiqueCard:** id, category, critique, status, agent, source path, Inspect contract, Challenge.
 
-Per finding: question, fixed decision rule, baseline / targeted / control copy, expected behavior, specificity check, result, limitation.
+**CritiqueContract drawer:** fields from `CritiqueContract` + current status + Open source + Challenge this critique → `/challenge/:findingId`.
 
-**`humanReviews.ts`**
+Short playback of routing events is nice if cheap (signal chips → agents). If time is tight, render the final routed team immediately and keep a compact “ROUTING DECISION” callout list from `routingEvents`.
 
-Prepared excerpts derived from `monosoup-knowledge-graph.js` review nodes. Do not fetch OpenReview. Include reviewer labels `mj9q`, `YMQp`, `q1EA`, `gzvH`, `Yqvj`, plus short meta-review and rebuttal snippets.
+### 2.3 Shared selection behavior
 
-**`comparisons.ts`**
+Selecting a finding, evidence badge, or graph node always:
 
-Finding-level alignment rows that produce:
+1. Resolves `sourceIds`
+2. Jumps Paper Preview
+3. Draws highlights
+4. Emphasizes the selected region
+5. Shows id / page / role / excerpt in the inspector
 
-- shared themes
-- human-only theme
-- PeerMind-only theme
-- disagreement
-- at least one human critique the defender refutes
+### 2.4 Out of scope this phase
 
-### 6.4 Deterministic pair-count helper
+Defender XYFlow, counterfactual page, report aggregation, comparison, Ask answers.
 
-```ts
-// src/lib/pairCount.ts
-export function unorderedPairs(n: number) {
-  return (n * (n - 1)) / 2;
-}
-// unorderedPairs(70) === 2415
-// reportedInFigure2 === 2409
-// omitted === 6
-```
+### 2.5 Acceptance (manual, presentation slice)
 
-The F05 Challenge inspector must show inputs, formula, output, reported value, and the limitation: this is a **reporting discrepancy**, not fabrication.
+- Load package → Understand: click two different node types, preview/excerpt follows.
+- Review: open one contract, sources listed, **Challenge** lands on `/challenge/:id` (page may be a placeholder until Phase 3).
+- No sample-specific strings in component source (`rg` for a known paper title in `src/` should only hit JSON or comments).
 
 ---
 
-## 7. Visual and interaction system
+# Phase 3 — Challenge, Test, Report
 
-### 7.1 Tokens
+**Outcome:** The product differentiator is demoable: unit-test the critique, then publish a locked review.
 
-```text
-Background     #f4f5f8 / white
-Ink            #202339
-Muted          #6a7083
-Line           #e2e5ed
-PeerMind       #6554cf
-Verified       green  #14775a
-Refuted        red    #ae3d54
-Supported/gap  amber  #986412
-Unverified     grey   #667085
-Method/paper   blue
-```
+This is the core talk (1:05–2:35).
 
-Typography:
+### 3.1 Playback engine
 
-- UI: Inter / system sans
-- quoted paper text: Georgia / serif
-- IDs and provenance: monospace (`F03`, `MS-S07`, `Appendix C / Table 8`)
+Generic `playbackEngine.ts`. It only advances `PlaybackEvent[]` and updates store flags. It does **not** contain scientific text.
 
-### 7.2 Layout chrome
+Events from design §23: message, activate/complete node, spawn_agent, reveal_source, update_ledger, replan, verdict, stop.
 
-Persistent on workflow pages (`/understand` through `/report`):
+Controls on Challenge (and anywhere else that animates): Play, Pause, Next step, Reset, Complete instantly.
 
-```text
-[P] PeerMind     Understand → Review → Challenge → Test → Report     Prepared demo
-                 Compare is a separate Evaluation link, not a required stage
-```
+Default for live talks: presenter can run **Next step** only. Auto-play is optional and slow-ish (≤700ms/event). No fake multi-second thinking.
 
-Stepper states: completed check, current active, upcoming muted. Direct click on a stage is allowed for presenter recovery.
-
-Presenter controls sit in a compact bar on animated pages:
-
-```text
-Play    Pause    Next Step    Reset    ·    Complete instantly
-```
-
-Keyboard (ignore when focus is in an input):
-
-```text
-Space         Play / Pause
-→             Next Step
-Shift+→       Complete instantly
-R             Reset stage
-1–7           Jump stages
-Esc           Close sheet/dialog
-```
-
-### 7.3 Animation budget
-
-200–600 ms. No forced waits longer than one event delay (~400–800 ms) unless the presenter left Play running.
-
----
-
-## 8. Page-by-page implementation
-
-### 8.1 Landing `/`
-
-**Goal:** product difference in 5–10 seconds.
-
-Layout from the design: split hero.
-
-Left:
-
-- Eyebrow: `FALSIFIABLE AI PEER REVIEW`
-- H1: `AI peer review with unit tests.`
-- Sub: `Every critique must survive a challenge.`
-- Primary CTA: `Review a Paper →` → `/understand` and `loadPreparedDemo()`
-- Secondary CTA: `See the Defender investigate` → `/challenge/F03`
-
-Right live example (static, already complete, no timer):
-
-```text
-AI Reviewer: "MonoSoup lacks a label-free threshold rule and evidence
-beyond Transformer architectures."
-        ↓
-Defender checks ERank-MonoSoup / ConvNeXt / R-sensitivity
-        ↓
-REFUTED · categorical absence is false
-Validity ≠ Sensitivity remains visible as a caption
-```
-
-Three feature cards: Make it testable / Challenge it / Change the evidence.
-
-Footer note: prepared MonoSoup fixture, no live model.
-
-**Do not** require a PDF upload.
-
-### 8.2 Understand `/understand`
-
-**Goal:** source-linked representation *before* review comments.
-
-Three columns:
-
-1. **Paper section nav.** Clicking a section filters G6 nodes whose `source` matches that section.
-2. **Paper Evidence Graph (G6).** Node types Method, Claim, Evidence, Scope/Gap. Progressive reveal via `understandReplay.ts`. Click node or edge → inspector. Zoom/pan, focus path, neighborhood highlight.
-3. **Inspector.** Record id, type, source location, excerpt, connected records, Open source sheet. Author claims labeled **Author claim · not yet verified**.
-
-Bottom: paper model counts + 4 Key Point cards that focus a graph path + `Continue to Review →`.
-
-G6 is used only here. Do not put reviewer workflow nodes in this graph. Do not mix human-review nodes into this graph; those belong on Compare.
-
-Presenter: Play reveals ~3 nodes per event; Complete instantly shows the full 24-node MonoSoup paper graph.
-
-### 8.3 Review `/review`
-
-**Goal:** dynamic routing + atomic critique contracts, all still **Untested**.
-
-Top: Paper signals → Reviewer Router → selected specialists. Show skipped roles (`Proof Reviewer · skipped · no theorem`).
-
-Bottom: overall assessment, strengths, candidate critiques F01–F05 as cards with status `UNTESTED`, questions, `Challenge the Review →` (defaults to F03).
-
-Clicking a critique opens `CritiqueContract` in a sheet:
-
-- allegation, type, scope, falsification condition, evidence burden, stop rule
-- `Challenge this critique →` `/challenge/:id`
-
-Routing replay: chips appear after signals; skipped chips stay grey.
-
-Do not show defender verdicts on this page.
-
-### 8.4 Challenge `/challenge/:findingId`
-
-**Goal:** investigation, not another review page.
-
-Default live finding: **F03**.
+### 3.2 Challenge page
 
 Layout:
 
-- Collapsed critique contract header
-- Left: React Flow defender workflow
-- Right: Live Inspector (current action, searching, evidence found)
-- Bottom: Evidence Ledger + initial verdict + `Run Counterfactual Challenge →`
-
-Workflow nodes:
-
 ```text
-Interpret Critique → Evidence Plan → Generate Specialists
-  → Specialist Checks (branch) → Evidence Ledger → Evidence Gate
-  → Replan ×1 if needed → Adjudication
+Header: finding id + critique quote
+Defender workflow (XYFlow) | Live inspector + Paper Preview
+Evidence ledger (for / against / gaps / provenance)
+Validity + limits
+Playback controls → Continue to Test (if package has a test)
 ```
 
-Branch scripts:
+**DefenderFlow (XYFlow, not G6)**
 
-| Finding | Visible route |
-|---|---|
-| F03 | Source Auditor + Claim Mapper → counter-evidence ERank / ConvNeXt / R-sensitivity → Refuted |
-| F05 | Numerical Checker → local `unorderedPairs(70)` → Verified |
-| F02 | Statistics/Theory specialists → evidence gap → Replan ×1 → Stop → Supported concern |
-| F01 | Judgment path → ledger of strengths + limits → Supported concern / Human Required |
-| F04 | Scope Assessor → requested metric not mandatory → Refuted |
+- Nodes/edges from `InvestigationRecord`.
+- States: idle, current, done, blocked, skipped, counterfactual.
+- Bounded replan must be **visible** when the package includes a `replan` event: gap callout → new node/agent → re-check → stop. Loop count and reasons come from data.
 
-Replan UI for F02:
+**LiveInspector:** current action text, current source, Open source.
 
-```text
-EVIDENCE GAP
-Required robustness derivation unavailable
-Spawn Theory Follow-up specialist
-Replan budget: 1 / 1
-STOP RULE REACHED
-Final status: Supported concern
-```
+**EvidenceLedger:** three columns/groups from `finalLedger` / in-progress updates. Click a row → preview.
 
-Evidence ledger fields: finding id, allegation, FOR, AGAINST, missing, source provenance, tool provenance, validity, importance, sensitivity (empty until Test), limits, next action.
+**FindingVerdict:** `FindingValidity` pill + limitations. Never a single 0–100 confidence bar as the answer.
 
-### 8.5 Test `/test/:findingId`
+Deep-link `/challenge/:findingId`. Provide **All findings** back to Review.
 
-**Goal:** “Does the reviewer actually respond to evidence?”
+### 3.3 Test (counterfactual) page
 
-Dedicated page. Three equal columns revealed sequentially:
+Three columns, always: **Baseline | Targeted change | Control**.
 
-| Column | F03 content |
-|---|---|
-| Baseline | Original manuscript; full counter-evidence present; prepared reviewer still says evidence is insufficient |
-| Targeted change | Relevant edit only: highlight/add ERank + ConvNeXt + R-sensitivity |
-| Control | Unrelated edit only, e.g. title casing / unrelated result formatting |
+Then: expected behavior, sensitivity result (`passed | failed | inconclusive | not_applicable`).
 
-Then: expected behavior → specificity check → sensitivity result.
+Then three **separate** judgments:
 
-Always show the three-way split:
+1. Critique validity
+2. Reviewer sensitivity
+3. Scientific importance
 
-```text
-CRITIQUE VALIDITY     REVIEWER SENSITIVITY     IMPORTANCE
-REFUTED               FAILED                   MODERATE
-```
+Do not merge them into one score. Data from `CounterfactualRecord`. If a finding has no test, show a generic empty state and a link to Report — do not invent a test in the UI.
 
-Sandbox copies are labeled **prepared inspection copies**. They do not create new scientific results.
+### 3.4 Report page
 
-F05 Test: targeted caption disclosure should repair the reporting defect; control leaves it intact; sensitivity Passed.
-
-F02 Test: targeted theory is **unavailable**; result Inconclusive / not constructible.
-
-### 8.6 Report `/report`
-
-Title: **Verified Review**.
-
-- Paper title + run id `PM-001`
-- Trust profile counts
+- Paper metadata
+- Review summary
+- Trust profile (counts by status, computed from findings)
 - Filter chips: All / Verified / Supported / Refuted / Unverified / Human Required
-- One card per finding with validity, importance, sensitivity, evidence, limits, inspect links
-- Export JSON (graph, contracts, ledger, counterfactuals, lock metadata)
-- Lock banner and `Compare with Human Reviews →`
+- Finding report cards: status, critique, evidence summary, importance, sensitivity, limits, Inspect investigation, Open source
+- **PeerMind run lock** — button **Lock and Compare** writes `LockedRun` (`runId`, `lockedAt`, finding ids). After lock, review data is read-only. Compare route stays disabled until lock.
 
-Lock copy:
+Export can be `window.print()` on the Report view (design rules §13). Do not build a PDF exporter.
 
-```text
-PEERMIND REVIEW LOCKED
-Run PM-001
-Human reviews have not been loaded into the review-generation workflow.
-```
+### 3.5 Acceptance (manual)
 
-Untested findings stay **Not Checked**. Direct entry to Report may offer `Load prepared completed run` for presenter recovery.
-
-### 8.7 Compare `/compare`
-
-Title: **Compare with Human Reviewers**. Subtitle: Independent finding-level comparison.
-
-Do not use text-similarity percentages.
-
-Flow:
-
-1. Show locked PeerMind run.
-2. Button: `Load Prepared OpenReview Reviews` (no paste required in the live demo).
-3. Short comparison playback (normalize → extract → match → map evidence → disagree).
-4. Dashboard: counts + filter tabs + alignment list + selected finding detail + finding matrix.
-5. Persistent notice: human reviews are reference, not ground truth.
-6. Optional capability table: Human / Single LLM / PeerMind. Capability only, no fake scores.
-
-Prepared comparison rows (minimum):
-
-| Theme | Humans | PeerMind | Defender |
-|---|---|---|---|
-| λLow / theory gap | Y (mj9q, q1EA, meta) | F02 | Supported |
-| Label-free R / architectures | Y (gzvH) | F03 | Refuted (rebuttal added ERank + ConvNeXt) |
-| Pair count 2409 vs 2415 | Y (q1EA) | F05 | Verified |
-| Modest effect size | Y (Yqvj, meta) | F01 | Supported |
-| Multi-ID OOD protocol | — | F04 | Refuted |
-| Terminology / “soup” name | Y (mj9q) | — | — |
-
-Author rebuttal example on the F03 row: humans asked for a label-free rule; rebuttal added ERank-MonoSoup; defender finds that evidence and refutes the remaining categorical absence claim.
-
-### 8.8 Architecture `/architecture`
-
-Support page, not a workflow stage.
-
-- Three-stage diagram from slides 4–7
-- Shared evidence ledger, not agent voting
-- Deterministic vs prepared vs future live-agent
-- Failure boundaries: unavailable source, no inferential evidence, counterfactual not constructible, human judgment required
-- Evaluation ablation: Single LLM → Reviewer MAS → + Defender → + Counterfactual
-- Reusable typed contract list from slide 9
-- Team contribution table (5 members, one integrated artifact each)
+- One finding: Play/Next through defender, source highlights update, a replan appears if present, final pill matches package.
+- Complete instantly works (recovery if the presenter overshoots).
+- Test page shows three variants and three separate judgments.
+- Report filters work; lock persists in the store; Compare is reachable only after lock.
+- Reset from header or playback returns Challenge to event 0.
 
 ---
 
-## 9. Implementation phases
+# Phase 4 — Compare, Ask PeerMind, demo polish
 
-Work in this order. Do not start P1 visual polish or optional PDF preview until the P0 path is clickable end to end.
+**Outcome:** Evaluation beat + secondary Ask + presenter-proofing.
 
-### Phase 0 — Bootstrap (0.5 day)
+Keep this phase short. If time slips, ship Phase 3 and add only prepared comparison + a thin Ask.
 
-1. Scaffold Vite + React + TS + Tailwind + shadcn.
-2. Add router, empty page shells, header, stepper, demo badge.
-3. Add Zustand store with the shape in 5.3.
-4. Confirm `npm run dev` and production `npm run build`.
+### 4.1 Compare
 
-**Exit:** every route renders a titled placeholder.
+**Input state (after lock):**
 
-### Phase 1 — Types, fixtures, playback (1 day)
+- Left: locked run summary (paper, run id, finding count) — clearly labeled LOCKED.
+- Right: paste Human Reviewer 1, add reviewer, optional meta-review / rebuttal / baseline, import comparison JSON, **Load prepared comparison**, Compare Reviews.
 
-1. Port types from the design.
-2. Author MonoSoup fixtures from `index.html` + graph JS files.
-3. Implement `playbackEngine.ts` with unit tests for play / next / complete / reset.
-4. Implement `pairCount.ts` with a one-line test.
-5. Add a `DemoBadge` and a global keyboard handler.
+For the hackathon, **Mode B** (prepared alignment in the package) is the real path. Manual paste should still **look** live: if the presenter pastes text and clicks Compare, either (a) show the prepared result with a note that this demo uses the prepared alignment, or (b) if paste is empty, just load the preset. Do **not** build NLP matching.
 
-**Exit:** fixtures typecheck; playback engine is independently testable.
+**Dashboard:**
 
-### Phase 2 — Landing + Understand (1 day)
+- Counts: human reviewers, PeerMind findings, shared, human-only, PeerMind-only
+- Filters: All / Shared / Human only / PeerMind only / Disagreement / Refuted
+- List + inspector: theme, human excerpt, PeerMind finding, evidence, defender status
+- Persistent principle copy:
 
-1. Landing hero, CTAs, static F03 example.
-2. G6 paper graph, section filter, inspector, key-point cards.
-3. Understand replay + presenter controls.
+> Human reviews are independent reference points, not ground truth. Agreement does not prove correctness, and disagreement does not imply PeerMind is wrong.
 
-**Exit:** one-click from Landing reaches a inspectable source-linked graph with no upload.
+Human cards must not use PeerMind purple as their fill (design rules §2.7).
 
-### Phase 3 — Review (0.5 day)
+Skip TanStack Table and Recharts. A filterable list + inspector is enough.
 
-1. Signal chips, router, skipped roles.
-2. Critique cards and Critique Contract sheet.
-3. Review replay.
+### 4.2 Ask PeerMind
 
-**Exit:** F03 contract shows allegation, falsifier, burden, stop rule; status is Untested.
+Right sheet, collapsed by default. Context from store (`scope` + `contextIds`). 2–4 suggested chips from `AskPeerMindConfig`.
 
-### Phase 4 — Challenge (1 day)
+Match `PreparedAskResponse`; render answer, source links (open preview), optional action buttons (`open_source`, `focus_graph`, `open_finding`, …). If a match implies a check, show a tool-trace row, not a chatty paragraph.
 
-1. React Flow defender graph with active / done / skipped / gap styles.
-2. Per-finding scripts; F03 is the polished default.
-3. Evidence ledger + live inspector.
-4. F02 replan/stop and F05 local arithmetic visible.
+Fallback when nothing matches — exact sentence from the design doc.
 
-**Exit:** F03 playthrough ends on Refuted with counter-evidence in the ledger before the badge appears.
+Entry points (wire as many as cheap): header, inspector, critique drawer, report card, compare inspector. Header is mandatory; the rest can share one `openAsk(scope, ids)` helper.
 
-### Phase 5 — Test (0.5 day)
+### 4.3 Architecture page
 
-1. Three-column variant cards.
-2. Sequential reveal + specificity + three judgment blocks.
-3. F03 failed sensitivity; F05 passed; F02 not constructible.
+A static, generic diagram of the six stages + Ask as secondary. No paper content. Optional; skip if behind schedule.
 
-**Exit:** a viewer can see Validity ≠ Importance ≠ Sensitivity without narration.
+### 4.4 Presenter polish (do these; they matter more than tests)
 
-### Phase 6 — Report (0.5 day)
+- Demo badge + “Interactive demonstration” + one-click **Reset demo** (clears lock, playback, comparison, Ask; keeps or reloads bundled package).
+- Direct URL to each stage still works after package load (store in memory is enough; `sessionStorage` of package id is a plus).
+- Empty / invalid / locked-gate states look designed, not like crashes.
+- Reduced-motion path.
+- Keyboard: stepper, finding rows, sheet focus trap.
+- Landing / Understand / Challenge checked at **1440px** and **1280px**.
+- Remove any remaining CDN use.
+- Replace root README demo pointer from old `index.html` to the Vite app when you cut over.
 
-1. Trust profile, filters, finding cards, inspect links.
-2. Lock + export JSON.
-3. Direct-link recovery.
+### 4.5 Out of scope (stay out)
 
-**Exit:** mixed statuses render; lock blocks mutation in Compare.
+Real LLM, real OpenReview, real PDF text-range highlighting, analytics, auth, dark mode, mobile-first redesign, unit/e2e tests, performance profiling beyond “the graph does not jank during Next step”.
 
-### Phase 7 — Compare (1 day)
+### 4.6 Acceptance (manual, full talk)
 
-1. Prepared OpenReview loader.
-2. Comparison playback.
-3. Summary, tabs, matrix, selected-finding panel, ground-truth disclaimer.
-4. Capability table without numbers.
+Run the 3-minute script in design §33 on a cold load with network off:
 
-**Exit:** matrix counts reconcile with rows; F03 shows human concern + rebuttal + defender Refuted.
-
-### Phase 8 — Architecture, presenter hardening, QA (0.5–1 day)
-
-1. Architecture page.
-2. Instant-complete, hash recovery, airplane-mode check.
-3. 1366×768 layout pass.
-4. Three-minute rehearsal using Section 12.
-
-**Exit:** core path works offline; presenter can recover to any stage in one click.
-
----
-
-## 10. Component and file-level task list
-
-Use this as the implementation checklist. Each item is a concrete PR-sized unit.
-
-### Shared
-
-- [ ] `StatusBadge` maps the seven verdicts to color + icon + text
-- [ ] `SourceLabel` for the six epistemic sources
-- [ ] `PresenterControls` wired to the playback engine
-- [ ] `WorkflowStepper` with Evaluation separated
-- [ ] `SourceViewer` sheet: excerpt + locator; PDF preview optional later
-
-### Understand
-
-- [ ] `PaperGraph` G6 adapter: node types, focus, zoom, click
-- [ ] `PaperSectionNav` filters by `source` string
-- [ ] `PaperInspector` for node and edge
-- [ ] `KeyPointCard` sets `focusNodes`
-
-### Review
-
-- [ ] `ReviewerRouter` animated chips
-- [ ] `CritiqueCard` + `CritiqueContract` sheet
-- [ ] Skipped-agent callout component
-
-### Challenge
-
-- [ ] `DefenderFlow` React Flow nodes/edges from investigation script
-- [ ] `LiveInspector` shows current event payload
-- [ ] `EvidenceLedger` FOR / AGAINST / GAP columns
-- [ ] `ReplanStatus` budget 1/1
-- [ ] `FindingVerdict` bounded status + limitation
-
-### Test
-
-- [ ] `VariantCard` × 3
-- [ ] `SpecificityCheck`
-- [ ] `JudgmentSplit` three independent blocks
-
-### Report / Compare
-
-- [ ] `TrustProfile`
-- [ ] `LockBanner`
-- [ ] `FindingMatrix` plain HTML table
-- [ ] `HumanReviewPanel`
-- [ ] Export helper writes one JSON blob
-
----
-
-## 11. Content to port from the prototype
-
-Do not rewrite scientific copy from scratch. Lift and normalize.
-
-From `index.html` `monoCritiques` / `monoCounterfactuals`:
-
-- F01–F05 titles, why-it-matters, criterion, explanation, revision, benefit
-- F03 evidence: ERank-MonoSoup, ConvNeXt, R-sensitivity
-- F05 calculation narrative
-
-From `outputs/model-soups-paper-knowledge-graph.js`:
-
-- 24 paper nodes, edges, key findings, coordinates
-
-From `outputs/monosoup-knowledge-graph.js`:
-
-- five human reviewers, rebuttal, meta-review, decision
-- `reviewSynthesis` strengths / unresolved / outcome
-- source URLs stored as static provenance text, not fetched
-
-Landing copy from the design, not from the current PatchBridge hero.
-
----
-
-## 12. Three-minute live demo runbook
-
-The implementation must make this path the default.
-
-**0:00–0:15 Landing**  
-“AI can generate reviews quickly, but authors still have to check whether the review itself is correct. PeerMind treats every critique as an allegation that must survive a challenge.”  
-Click **Review a Paper**.
-
-**0:15–0:35 Understand**  
-Show the paper graph. Click claim → evidence.  
-“Before reviewing, PeerMind builds a source-linked representation so every downstream judgment can point back to the paper.”
-
-**0:35–0:55 Review**  
-Show signals, selected vs skipped specialists, open F03 contract.  
-“The paper determines which specialists are needed. Each critique is a falsifiable contract, not just review prose.”
-
-**0:55–1:35 Challenge F03**  
-Play defender. Source Auditor → ERank / ConvNeXt / R-sensitivity → ledger AGAINST → **Refuted**.  
-“The reviewer sounded plausible but overlooked evidence already in the paper.”
-
-**1:35–2:15 Test F03**  
-Baseline / Targeted / Control. Point at:
-
-```text
-Validity ≠ Importance ≠ Reviewer Sensitivity
-```
-
-“The original absence claim is false. Separately, the prepared reviewer did not update the way a sensitive reviewer should.”
-
-**2:15–2:35 Report**  
-Mixed statuses. Lock PM-001.  
-“PeerMind does not force every criticism into a confident answer.”
-
-**2:35–3:00 Compare**  
-Load prepared reviews. Show shared theory concern, PeerMind-only F04, human-only terminology, F03 human concern refuted with rebuttal evidence.  
-“PeerMind is not designed to imitate human reviewers. It makes comments inspectable, challengeable, and falsifiable.”
-
-Backup tabs: `/challenge/F03` and `/test/F03` already completed.
-
----
-
-## 13. Verification
-
-### 13.1 Functional matrix
-
-| ID | Test | Expected |
+| Time | Beat | Must see |
 |---|---|---|
-| A01 | Open `/` with network disabled | Landing renders, no required remote request |
-| A02 | Click Review a Paper | `/understand`, MonoSoup graph replay-ready |
-| A03 | Play / pause / step / reset Understand | Deterministic node reveal |
-| A04 | Click node and edge | Inspector shows id, locator, excerpt, provenance |
-| A05 | Open Review | Selected and skipped specialists have reasons |
-| A06 | Open F03 contract | Allegation, scope, falsifier, burden, stop rule |
-| A07 | Run F03 Challenge | Counter-evidence appears before Refuted |
-| A08 | Run F02 Challenge | Exactly one replan, then stop / Supported concern |
-| A09 | Run F05 Challenge | UI computes 2,415 and difference of 6 |
-| A10 | Run F03 Test | Three columns; validity Refuted; sensitivity Failed; importance separate |
-| A11 | Open Report early | Uncompleted findings remain Not Checked |
-| A12 | Lock report | Banner + timestamp; Compare cannot mutate findings |
-| A13 | Load prepared humans | Matrix counts match rows |
-| A14 | Export | Valid JSON with graph, contracts, ledger, tests, limits, lock |
-| A15 | Refresh each route | Prerequisite prepared state reconstructs |
-| A16 | Complete instantly | Final state equals full Play |
-| A17 | Keyboard while typing | Shortcuts do not steal input |
-
-### 13.2 Content integrity
-
-- Every citation points at a prepared source record
-- F05 says reporting discrepancy, not misconduct
-- Counterfactual copy never claims an unperformed experiment was run
-- Human agreement is never “correctness”
-- No quantitative PeerMind accuracy numbers
-- Prepared / simulated / deterministic are labeled
-- Finding IDs match this plan and the slides
-
-### 13.3 Display
-
-- 1366×768: no page-level horizontal overflow
-- Graph canvases may scroll internally
-- Semantic color always paired with a text label
-- `prefers-reduced-motion` reaches the same end states
-- Focus-visible on interactive controls
+| 0:00 | Landing | Load package, no hard-coded paper |
+| 0:15 | Understand | Graph + source highlight |
+| 0:40 | Review | Routing + one Critique Contract |
+| 1:05 | Challenge | Defender + ledger + optional replan |
+| 1:45 | Test | Baseline / Targeted / Control |
+| 2:15 | Report | Mixed statuses, lock |
+| 2:35 | Compare | Prepared alignment themes |
+| Optional | Ask | One suggested question + source link |
 
 ---
 
-## 14. Mapping to CFAR judging
+## Cross-cutting rules for every phase
 
-| Criterion | What the fake demo must still show |
+| Rule | Practice |
 |---|---|
-| Innovativeness 25% | Critique contracts, counter-evidence search, counterfactual unit test, Validity ≠ Sensitivity |
-| Teamwork 20% | Architecture page lists five integrated artifacts sharing the same finding ids |
-| Reusable asset 20% | Typed ledger, graph schema, replay events, JSON export; clearly labeled as the contract a future live service would emit |
-| Technical rigor 20% | Deterministic pair-count, provenance, stop rules, bounded replan, fixture boundaries |
-| Agentic design 10% | Dynamic specialists, branching, replan, abstain/stop, not a fixed prompt chain |
-| Demonstration 5% | Reliable 3-minute MonoSoup path with instant-complete recovery |
-
-Honesty to judges: this build is a **prepared interactive prototype**. The reusable asset is the protocol and data contract, not a hidden live LLM.
-
----
-
-## 15. Explicit non-goals and later phases
-
-### Not this phase
-
-- Connecting any model provider
-- Implementing LangGraph / MAS runtime
-- FastAPI or other backend
-- Real OpenReview ingestion
-- Production PDF pipeline
-- Multi-paper library
-- User accounts
-
-### Later, only after the fake demo is stable
-
-1. Replace playback scripts with a local agent runtime that writes the same JSON contracts.
-2. Keep the UI; swap `src/demo/scripts/*` for live event streams.
-3. Add a tiny local service: PDF in, ledger JSON out.
-4. Blinded CFAR pilot with finding-level labels.
-
-The UI should be built so that swap is a data-source change, not a page rewrite: pages read `DemoState` + typed fixtures/events, never hardcode “call the model.”
+| No paper in components | Put sample strings only under `public/demo-data` or `src/data/fixtures` |
+| Generic chrome copy only | Design doc §2.2 |
+| Evidence first | Any verdict/finding/node has Open source |
+| Progressive disclosure | Contracts, traces, logs in drawers |
+| Playback owns time | Components do not `setTimeout` their own “thinking” copy |
+| Visual system | Design rules file is source of truth; do not introduce new colors |
+| Testing | Zod at the boundary + manual script. No test app. |
 
 ---
 
-## 16. Definition of done for this phase
+## Suggested build order inside a phase
 
-The fake demo is done when:
+Always: **tokens/layout → data on the page → interaction → motion**. Do not start G6 animation before the inspector shows the selected node in a static state.
 
-1. A presenter can complete the Section 12 runbook in about three minutes without a network.
-2. F01–F05 are inspectable from graph → contract → ledger → counterfactual → report → comparison.
-3. F03 shows counter-evidence refutation and a separate sensitivity result.
-4. F05 shows a real local arithmetic check.
-5. F02 shows one replan and a stop.
-6. Compare uses prepared human reviews and never treats them as ground truth.
-7. There is no LLM client, no backend process, and no required external API in the runtime.
-8. `npm run build` produces a static app that can be served by any local static server.
+---
+
+## Cut line if time runs out
+
+Ship in this order (stop at the last complete line):
+
+1. Phase 1 + Understand excerpt-only + Review list + Report static + no Compare  
+2. + Challenge playback + lock  
+3. + Test + Compare prepared  
+4. + Paper highlights + Ask + polish  
+
+A beautiful Challenge + Report with excerpt sources beats a fragile PDF.js + empty Compare.
+
+---
+
+## Explicitly not a phase
+
+- Migrating the old `index.html` behavior 1:1
+- Production backend swap (keep adapters so a later JSON API can replace the file loader)
+- Filling the demo package for a second paper (that is data work after the UI exists)
+
+When a second paper appears, replace `public/demo-data/*.json` and paper assets only.

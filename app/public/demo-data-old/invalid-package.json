@@ -1,0 +1,51 @@
+{
+  "schemaVersion": "1.0",
+  "demo": { "id": "broken", "title": "Broken package" },
+  "paper": { "id": "p1", "title": "Broken" },
+  "sources": [],
+  "sections": [],
+  "paperGraph": {
+    "nodes": [],
+    "edges": [{ "id": "E01", "source": "N-MISSING", "target": "N-ALSO-MISSING", "relation": "uses", "sourceIds": ["SRC-MISSING"] }]
+  },
+  "paperSummary": { "overview": "Invalid on purpose.", "keyPoints": [] },
+  "reviewerRun": {
+    "signals": [],
+    "candidateAgents": [],
+    "selectedAgentIds": ["agent-missing"],
+    "routingEvents": [],
+    "review": {
+      "overallAssessment": "Broken",
+      "strengths": [],
+      "authorQuestions": [],
+      "findingIds": ["F99"]
+    }
+  },
+  "findings": [
+    {
+      "id": "F01",
+      "category": "Test",
+      "critique": "References a missing source.",
+      "reviewerAgentId": "agent-missing",
+      "sourceIds": ["SRC-MISSING"],
+      "contract": {
+        "allegation": "x",
+        "type": "x",
+        "scope": "x",
+        "falsifier": "x",
+        "evidenceBurden": "x",
+        "stopRule": "x",
+        "relevanceTarget": "x"
+      },
+      "evidenceFor": [],
+      "evidenceAgainst": [],
+      "missingEvidence": [],
+      "validity": "unverified",
+      "importance": { "level": "n/a", "explanation": "n/a" },
+      "limitations": []
+    }
+  ],
+  "investigations": [],
+  "counterfactualTests": [],
+  "report": { "summary": "Should fail validation." }
+}
